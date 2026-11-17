@@ -122,15 +122,21 @@
   <!-- 慶祝彩帶 Canvas -->
   <canvas id="confetti-canvas" class="fixed inset-0 pointer-events-none z-50 w-full h-full"></canvas>
 
+  <!-- 音效測試視覺提示 Toast -->
+  <div id="audio-toast" class="fixed top-16 left-1/2 -translate-x-1/2 z-50 pointer-events-none opacity-0 transition-all duration-300 transform -translate-y-2 bg-amber-950/95 text-amber-100 border-2 border-amber-400 px-5 py-2.5 rounded-2xl shadow-xl font-bold text-sm md:text-base flex items-center gap-2">
+    <span class="text-xl">🔔</span>
+    <span id="audio-toast-text">音效引擎已啟動！聲音清晰正常！</span>
+  </div>
+
   <!-- 頂部全域導覽與控制列 -->
-  <header class="w-full px-3 py-2 md:px-6 md:py-3 flex items-center justify-between bg-[#2C1E16] text-[#FDF8EE] border-b-4 border-[#D99B26] shadow-md z-30 shrink-0">
+  <header class="w-full px-3 py-2 md:px-6 md:py-2.5 flex items-center justify-between bg-[#2C1E16] text-[#FDF8EE] border-b-4 border-[#D99B26] shadow-md z-30 shrink-0">
     <div class="flex items-center gap-2 md:gap-3">
       <button id="btn-home" class="hidden px-3 py-1.5 rounded-xl bg-[#4A3528] hover:bg-[#5E4433] active:scale-95 text-amber-200 font-bold text-xs md:text-sm flex items-center gap-1 border border-amber-500/40 transition">
         <span>🏠</span> <span>返回首頁</span>
       </button>
       <div class="flex items-center gap-2">
         <span class="w-7 h-7 md:w-8 md:h-8 rounded-lg bg-gradient-to-br from-red-600 to-amber-600 flex items-center justify-center font-serif-tc font-black text-white shadow-inner text-sm md:text-base border border-amber-300">辭</span>
-        <h1 class="font-serif-tc font-black text-base md:text-xl tracking-wider text-amber-100">字字珠璣：題辭快手</h1>
+        <h1 class="font-serif-tc font-black text-sm sm:text-base md:text-xl tracking-wider text-amber-100">字字珠璣：題辭快手</h1>
       </div>
     </div>
 
@@ -140,9 +146,17 @@
       <span id="global-timer-text" class="font-mono font-black text-lg md:text-2xl text-white tracking-wider">01:00</span>
     </div>
 
-    <!-- 右側音效開關 -->
-    <div class="flex items-center gap-2">
-      <button id="btn-sound" class="px-3 py-1.5 rounded-xl bg-[#4A3528] hover:bg-[#5E4433] active:scale-95 text-amber-100 font-bold text-xs md:text-sm flex items-center gap-1.5 border border-amber-500/40 transition" title="切換音效">
+    <!-- 右側音效測試、語音朗讀與音效開關 -->
+    <div class="flex items-center gap-1.5 sm:gap-2">
+      <button id="btn-test-sound" class="px-2.5 py-1.5 rounded-xl bg-amber-600 hover:bg-amber-500 active:scale-95 text-white font-black text-xs md:text-sm flex items-center gap-1 border border-amber-300 shadow-sm transition" title="點此測試音效是否正常">
+        <span>🔔</span>
+        <span>測試音效</span>
+      </button>
+      <button id="btn-tts" class="px-2.5 py-1.5 rounded-xl bg-[#4A3528] hover:bg-[#5E4433] active:scale-95 text-amber-100 font-bold text-xs md:text-sm flex items-center gap-1 border border-amber-500/40 transition" title="切換題目語音朗讀">
+        <span id="tts-icon">🗣️</span>
+        <span id="tts-label" class="hidden md:inline">語音朗讀: 關</span>
+      </button>
+      <button id="btn-sound" class="px-2.5 py-1.5 rounded-xl bg-emerald-700 hover:bg-emerald-600 active:scale-95 text-white font-bold text-xs md:text-sm flex items-center gap-1 border border-emerald-400/60 transition" title="切換音效">
         <span id="sound-icon">🔊</span>
         <span id="sound-label" class="hidden sm:inline">音效開啟</span>
       </button>
@@ -153,14 +167,15 @@
   <main id="screen-home" class="flex-1 w-full max-w-5xl mx-auto px-3 py-2 md:p-6 flex flex-col justify-between overflow-y-auto no-scrollbar z-10">
     
     <!-- 遊戲主視覺橫幅 -->
-    <div class="text-center my-auto py-2">
-      <div class="inline-block px-4 py-1 rounded-full bg-red-100 border border-red-300 text-red-800 font-bold text-xs md:text-sm mb-2 shadow-sm">
-        ✨ 國語文經典素養 ‧ 3秒極速反應挑戰 ✨
+    <div class="text-center my-auto py-1.5">
+      <div class="inline-flex items-center gap-2 px-4 py-1 rounded-full bg-red-100 border border-red-300 text-red-800 font-bold text-xs md:text-sm mb-1.5 shadow-sm">
+        <span>✨ 國語文經典素養 ‧ 3秒極速反應挑戰 ✨</span>
+        <button id="btn-home-test-sound" type="button" class="underline text-red-700 hover:text-red-900 font-black ml-1">🔔 點此試聽音效</button>
       </div>
       <h2 class="font-serif-tc font-black text-3xl sm:text-5xl md:text-6xl text-[#2C1E16] tracking-tight drop-shadow-sm">
         字字珠璣 <span class="text-[#C93B2B]">題辭快手</span>
       </h2>
-      <p class="text-xs sm:text-sm md:text-base text-stone-600 mt-1 md:mt-2 font-medium">
+      <p class="text-xs sm:text-sm md:text-base text-stone-600 mt-1 font-medium">
         眼明手快辨典故！3 秒內完成二選一作答，連對加分無上限！
       </p>
     </div>
@@ -725,90 +740,398 @@
     ];
 
     /**************************************************************
-     * 2. Web Audio API 合成音效引擎（零外部依賴、即時回饋）
+     * 2. 雙引擎高音量音效系統（WAV Data URI <audio> + Web Audio API）
+     *    解決 iOS/iPadOS 靜音鍵、iframe 與瀏覽器無聲問題
      **************************************************************/
-    class SoundEngine {
+    class DualSoundEngine {
       constructor() {
         this.ctx = null;
+        this.masterGain = null;
+        this.compressor = null;
         this.muted = false;
+        this.ttsEnabled = false;
+        this.wavCache = {};
+        this.unlocked = false;
+
+        // 設定 iOS / Safari AudioSession 為 playback，即使手機開靜音鍵也能播放遊戲音效
+        if (navigator.audioSession) {
+          try {
+            navigator.audioSession.type = 'playback';
+          } catch (e) {}
+        }
+
+        // 預先合成所有高音量 16-bit 44100Hz WAV 音效 Data URI
+        this.prebuildWavSounds();
       }
 
-      init() {
+      // 將浮點音訊陣列轉為 16-bit PCM WAV Data URI
+      encodeWAV(samples, sampleRate = 44100) {
+        const buffer = new ArrayBuffer(44 + samples.length * 2);
+        const view = new DataView(buffer);
+        const writeString = (offset, str) => {
+          for (let i = 0; i < str.length; i++) {
+            view.setUint8(offset + i, str.charCodeAt(i));
+          }
+        };
+
+        writeString(0, 'RIFF');
+        view.setUint32(4, 36 + samples.length * 2, true);
+        writeString(8, 'WAVE');
+        writeString(12, 'fmt ');
+        view.setUint32(16, 16, true); // PCM format
+        view.setUint16(20, 1, true);  // Linear PCM
+        view.setUint16(22, 1, true);  // Mono
+        view.setUint32(24, sampleRate, true);
+        view.setUint32(28, sampleRate * 2, true);
+        view.setUint16(32, 2, true);
+        view.setUint16(34, 16, true);
+        writeString(36, 'data');
+        view.setUint32(40, samples.length * 2, true);
+
+        let offset = 44;
+        for (let i = 0; i < samples.length; i++, offset += 2) {
+          const s = Math.max(-1, Math.min(1, samples[i]));
+          view.setInt16(offset, s < 0 ? s * 0x8000 : s * 0x7FFF, true);
+        }
+
+        const bytes = new Uint8Array(buffer);
+        let binary = '';
+        const chunkSize = 0x8000;
+        for (let i = 0; i < bytes.length; i += chunkSize) {
+          binary += String.fromCharCode.apply(null, bytes.subarray(i, i + chunkSize));
+        }
+        return 'data:audio/wav;base64,' + btoa(binary);
+      }
+
+      // 根據音符序列合成 PCM 樣本：notes = [{ freq, start, dur, type, vol, slideTo }]
+      synthesizeNotes(notes, totalDuration, sampleRate = 44100) {
+        const totalSamples = Math.ceil(totalDuration * sampleRate);
+        const out = new Float32Array(totalSamples);
+
+        for (const n of notes) {
+          const startSample = Math.floor(n.start * sampleRate);
+          const durSamples = Math.floor(n.dur * sampleRate);
+          const vol = n.vol !== undefined ? n.vol : 0.85;
+          const waveType = n.type || 'triangle';
+          let phase = 0;
+
+          for (let i = 0; i < durSamples && (startSample + i) < totalSamples; i++) {
+            const t = i / sampleRate;
+            const progress = i / durSamples;
+            const currentFreq = n.slideTo
+              ? n.freq + (n.slideTo - n.freq) * progress
+              : n.freq;
+
+            phase += (2 * Math.PI * currentFreq) / sampleRate;
+
+            let raw = 0;
+            if (waveType === 'sine') {
+              raw = Math.sin(phase);
+            } else if (waveType === 'square') {
+              raw = Math.sin(phase) >= 0 ? 0.8 : -0.8;
+            } else if (waveType === 'sawtooth') {
+              raw = 2 * ((phase / (2 * Math.PI)) - Math.floor(0.5 + phase / (2 * Math.PI)));
+            } else {
+              // triangle + 諧波讓音色在手機喇叭更清脆響亮
+              raw = (2 / Math.PI) * Math.asin(Math.sin(phase)) * 0.75 + Math.sin(phase * 2) * 0.25;
+            }
+
+            // 快速起音 (Attack) 與自然指數衰減 (Decay)
+            const attack = Math.min(1, t / 0.008);
+            const decay = Math.pow(1 - progress, 1.4);
+            out[startSample + i] += raw * vol * attack * decay;
+          }
+        }
+
+        // 正規化防爆音並保持高響度
+        let maxPeak = 0;
+        for (let i = 0; i < out.length; i++) {
+          const abs = Math.abs(out[i]);
+          if (abs > maxPeak) maxPeak = abs;
+        }
+        if (maxPeak > 0.95) {
+          const scale = 0.95 / maxPeak;
+          for (let i = 0; i < out.length; i++) out[i] *= scale;
+        }
+        return this.encodeWAV(out, sampleRate);
+      }
+
+      prebuildWavSounds() {
+        // 1. 清脆木魚按鍵音 (click)
+        this.wavCache.click = this.synthesizeNotes([
+          { freq: 780, slideTo: 920, start: 0, dur: 0.065, type: 'triangle', vol: 0.9 }
+        ], 0.08);
+
+        // 2. 雙人鎖定選項音 (lock)
+        this.wavCache.lock = this.synthesizeNotes([
+          { freq: 660, start: 0, dur: 0.06, type: 'triangle', vol: 0.85 },
+          { freq: 990, start: 0.05, dur: 0.09, type: 'triangle', vol: 0.9 }
+        ], 0.16);
+
+        // 3. 倒數滴答音 (一般與緊急)
+        this.wavCache.tickNormal = this.synthesizeNotes([
+          { freq: 880, start: 0, dur: 0.055, type: 'triangle', vol: 0.75 }
+        ], 0.07);
+
+        this.wavCache.tickUrgent = this.synthesizeNotes([
+          { freq: 1320, start: 0, dur: 0.07, type: 'square', vol: 0.85 }
+        ], 0.09);
+
+        // 4. 開場鑼鼓號角音 (start)
+        this.wavCache.start = this.synthesizeNotes([
+          { freq: 523.25, start: 0.00, dur: 0.12, type: 'triangle', vol: 0.85 },
+          { freq: 659.25, start: 0.09, dur: 0.12, type: 'triangle', vol: 0.85 },
+          { freq: 783.99, start: 0.18, dur: 0.14, type: 'triangle', vol: 0.90 },
+          { freq: 1046.50, start: 0.28, dur: 0.32, type: 'triangle', vol: 0.95 }
+        ], 0.62);
+
+        // 5. 答對清脆合弦音 (correct)
+        this.wavCache.correct = this.synthesizeNotes([
+          { freq: 587.33, start: 0.00, dur: 0.12, type: 'triangle', vol: 0.90 },
+          { freq: 880.00, start: 0.08, dur: 0.14, type: 'triangle', vol: 0.90 },
+          { freq: 1174.66, start: 0.16, dur: 0.30, type: 'triangle', vol: 0.95 }
+        ], 0.48);
+
+        // 6. 連對 / 最快答對高昂激勵音 (combo)
+        this.wavCache.combo = this.synthesizeNotes([
+          { freq: 659.25, start: 0.00, dur: 0.10, type: 'triangle', vol: 0.90 },
+          { freq: 783.99, start: 0.08, dur: 0.10, type: 'triangle', vol: 0.90 },
+          { freq: 987.77, start: 0.16, dur: 0.12, type: 'triangle', vol: 0.92 },
+          { freq: 1318.51, start: 0.25, dur: 0.35, type: 'triangle', vol: 0.98 }
+        ], 0.62);
+
+        // 7. 答錯低沉警示音 (wrong)
+        this.wavCache.wrong = this.synthesizeNotes([
+          { freq: 311.13, slideTo: 260, start: 0.00, dur: 0.16, type: 'sawtooth', vol: 0.85 },
+          { freq: 220.00, slideTo: 165, start: 0.15, dur: 0.30, type: 'sawtooth', vol: 0.90 }
+        ], 0.48);
+
+        // 8. 3秒逾時雙響警鈴 (timeout)
+        this.wavCache.timeout = this.synthesizeNotes([
+          { freq: 280, slideTo: 220, start: 0.00, dur: 0.14, type: 'square', vol: 0.85 },
+          { freq: 240, slideTo: 170, start: 0.16, dur: 0.28, type: 'square', vol: 0.90 }
+        ], 0.46);
+
+        // 9. 遊戲結算勝利慶典號角 (victory)
+        this.wavCache.victory = this.synthesizeNotes([
+          { freq: 523.25, start: 0.00, dur: 0.14, type: 'triangle', vol: 0.90 },
+          { freq: 659.25, start: 0.13, dur: 0.14, type: 'triangle', vol: 0.90 },
+          { freq: 783.99, start: 0.26, dur: 0.14, type: 'triangle', vol: 0.90 },
+          { freq: 1046.50, start: 0.39, dur: 0.22, type: 'triangle', vol: 0.95 },
+          { freq: 783.99, start: 0.63, dur: 0.14, type: 'triangle', vol: 0.90 },
+          { freq: 1046.50, start: 0.78, dur: 0.48, type: 'triangle', vol: 0.98 }
+        ], 1.30);
+      }
+
+      initWebAudio() {
         if (!this.ctx) {
           const AudioCtx = window.AudioContext || window.webkitAudioContext;
-          if (AudioCtx) this.ctx = new AudioCtx();
+          if (AudioCtx) {
+            this.ctx = new AudioCtx();
+            this.compressor = this.ctx.createDynamicsCompressor();
+            this.compressor.threshold.setValueAtTime(-14, this.ctx.currentTime);
+            this.compressor.knee.setValueAtTime(20, this.ctx.currentTime);
+            this.compressor.ratio.setValueAtTime(6, this.ctx.currentTime);
+            this.compressor.attack.setValueAtTime(0.003, this.ctx.currentTime);
+            this.compressor.release.setValueAtTime(0.15, this.ctx.currentTime);
+
+            this.masterGain = this.ctx.createGain();
+            this.masterGain.gain.setValueAtTime(0.9, this.ctx.currentTime);
+            this.masterGain.connect(this.compressor);
+            this.compressor.connect(this.ctx.destination);
+          }
         }
         if (this.ctx && this.ctx.state === 'suspended') {
-          this.ctx.resume();
+          this.ctx.resume().catch(() => {});
         }
+      }
+
+      unlockAudio() {
+        this.initWebAudio();
+        if (this.unlocked) return;
+        this.unlocked = true;
+        // 播放極短靜音緩衝區以解鎖行動裝置音訊
+        if (this.ctx) {
+          try {
+            const buf = this.ctx.createBuffer(1, 1, 22050);
+            const src = this.ctx.createBufferSource();
+            src.buffer = buf;
+            src.connect(this.ctx.destination);
+            src.start(0);
+          } catch (e) {}
+        }
+      }
+
+      playWav(key, volume = 1.0) {
+        if (this.muted || !this.wavCache[key]) return;
+        try {
+          const audio = new Audio(this.wavCache[key]);
+          audio.volume = volume;
+          const playPromise = audio.play();
+          if (playPromise !== undefined) {
+            playPromise.catch(() => {});
+          }
+        } catch (e) {}
+      }
+
+      playWebTone(freq, type = 'triangle', duration = 0.14, startTimeOffset = 0, gainVal = 0.65, slideTo = null) {
+        if (this.muted) return;
+        this.initWebAudio();
+        if (!this.ctx || !this.masterGain) return;
+
+        try {
+          const now = this.ctx.currentTime + startTimeOffset;
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = type;
+          osc.frequency.setValueAtTime(freq, now);
+          if (slideTo) {
+            osc.frequency.linearRampToValueAtTime(slideTo, now + duration);
+          }
+
+          gain.gain.setValueAtTime(0.001, now);
+          gain.gain.linearRampToValueAtTime(gainVal, now + 0.008);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + duration);
+
+          osc.connect(gain);
+          gain.connect(this.masterGain);
+
+          osc.start(now);
+          osc.stop(now + duration + 0.01);
+        } catch (e) {}
       }
 
       toggleMute() {
         this.muted = !this.muted;
+        if (this.muted && 'speechSynthesis' in window) {
+          window.speechSynthesis.cancel();
+        }
         return this.muted;
       }
 
-      playTone(freq, type = 'sine', duration = 0.12, startTimeOffset = 0, gainVal = 0.18) {
-        if (this.muted) return;
-        this.init();
-        if (!this.ctx) return;
-
-        const now = this.ctx.currentTime + startTimeOffset;
-        const osc = this.ctx.createOscillator();
-        const gain = this.ctx.createGain();
-        osc.type = type;
-        osc.frequency.setValueAtTime(freq, now);
-
-        gain.gain.setValueAtTime(gainVal, now);
-        gain.gain.exponentialRampToValueAtTime(0.001, now + duration);
-
-        osc.connect(gain);
-        gain.connect(this.ctx.destination);
-
-        osc.start(now);
-        osc.stop(now + duration);
+      toggleTTS() {
+        this.ttsEnabled = !this.ttsEnabled;
+        if (this.ttsEnabled) {
+          this.speakText('語音朗讀已開啟');
+        } else if ('speechSynthesis' in window) {
+          window.speechSynthesis.cancel();
+        }
+        return this.ttsEnabled;
       }
 
-      // 點擊按鈕音效
+      speakText(text) {
+        if (this.muted || !this.ttsEnabled || !('speechSynthesis' in window)) return;
+        try {
+          window.speechSynthesis.cancel();
+          const clean = text.replace(/[「」]/g, '');
+          const utter = new SpeechSynthesisUtterance(clean);
+          utter.lang = 'zh-TW';
+          utter.rate = 1.15;
+          utter.volume = 1.0;
+          window.speechSynthesis.speak(utter);
+        } catch (e) {}
+      }
+
+      // 1. 點擊按鈕音效
       click() {
-        this.playTone(580, 'triangle', 0.07, 0, 0.15);
+        this.playWav('click', 0.95);
+        this.playWebTone(780, 'triangle', 0.065, 0, 0.55, 920);
       }
 
-      // 雙人鎖定選項音效
+      // 2. 開始遊戲音效
+      start() {
+        this.playWav('start', 1.0);
+        this.playWebTone(523.25, 'triangle', 0.12, 0.00, 0.65);
+        this.playWebTone(659.25, 'triangle', 0.12, 0.09, 0.65);
+        this.playWebTone(783.99, 'triangle', 0.14, 0.18, 0.70);
+        this.playWebTone(1046.50, 'triangle', 0.30, 0.28, 0.75);
+      }
+
+      // 3. 雙人鎖定選項音效
       lockIn() {
-        this.playTone(720, 'sine', 0.08, 0, 0.15);
+        this.playWav('lock', 0.95);
+        this.playWebTone(660, 'triangle', 0.06, 0.00, 0.60);
+        this.playWebTone(990, 'triangle', 0.09, 0.05, 0.65);
       }
 
-      // 3秒倒數滴答音效
+      // 4. 3秒倒數滴答音效
       tick(urgent = false) {
-        this.playTone(urgent ? 980 : 660, 'sine', 0.06, 0, urgent ? 0.14 : 0.08);
+        if (urgent) {
+          this.playWav('tickUrgent', 0.95);
+          this.playWebTone(1320, 'square', 0.07, 0, 0.55);
+        } else {
+          this.playWav('tickNormal', 0.85);
+          this.playWebTone(880, 'triangle', 0.055, 0, 0.45);
+        }
       }
 
-      // 答對音效（根據連對次數提升音高）
-      correct(streak = 1) {
+      // 5. 答對音效（連對或最快答對時升級為激勵音效）
+      correct(streak = 1, isFastestBonus = false) {
         const boost = Math.min(streak - 1, 8) * 35;
-        this.playTone(523.25 + boost, 'triangle', 0.12, 0, 0.22);
-        this.playTone(659.25 + boost, 'triangle', 0.12, 0.09, 0.22);
-        this.playTone(783.99 + boost, 'triangle', 0.26, 0.18, 0.25);
+        if (streak >= 2 || isFastestBonus) {
+          this.playWav('combo', 1.0);
+        } else {
+          this.playWav('correct', 1.0);
+        }
+        this.playWebTone(587.33 + boost, 'triangle', 0.12, 0.00, 0.70);
+        this.playWebTone(880.00 + boost, 'triangle', 0.14, 0.08, 0.75);
+        this.playWebTone(1174.66 + boost, 'triangle', 0.30, 0.16, 0.80);
       }
 
-      // 答錯或逾時音效
-      wrong() {
-        this.playTone(220, 'sawtooth', 0.16, 0, 0.18);
-        this.playTone(165, 'sawtooth', 0.28, 0.14, 0.20);
+      // 6. 答錯或逾時音效
+      wrong(isTimeout = false) {
+        if (isTimeout) {
+          this.playWav('timeout', 1.0);
+          this.playWebTone(280, 'square', 0.14, 0.00, 0.65, 220);
+          this.playWebTone(240, 'square', 0.28, 0.16, 0.70, 170);
+        } else {
+          this.playWav('wrong', 1.0);
+          this.playWebTone(311.13, 'sawtooth', 0.16, 0.00, 0.65, 260);
+          this.playWebTone(220.00, 'sawtooth', 0.30, 0.15, 0.70, 165);
+        }
       }
 
-      // 遊戲結束與勝隊祝賀慶典號角
+      // 7. 遊戲結束與勝隊祝賀慶典號角
       fanfare() {
-        const notes = [523.25, 659.25, 783.99, 1046.5];
-        notes.forEach((n, idx) => {
-          this.playTone(n, 'triangle', 0.22, idx * 0.12, 0.24);
+        this.playWav('victory', 1.0);
+        const notes = [
+          { f: 523.25, t: 0.00, d: 0.14 },
+          { f: 659.25, t: 0.13, d: 0.14 },
+          { f: 783.99, t: 0.26, d: 0.14 },
+          { f: 1046.50, t: 0.39, d: 0.22 },
+          { f: 783.99, t: 0.63, d: 0.14 },
+          { f: 1046.50, t: 0.78, d: 0.48 }
+        ];
+        notes.forEach(n => {
+          this.playWebTone(n.f, 'triangle', n.d, n.t, 0.75);
         });
-        this.playTone(1318.5, 'sine', 0.5, 0.48, 0.25);
       }
     }
 
-    const sfx = new SoundEngine();
+    const sfx = new DualSoundEngine();
+
+    // 全域使用者互動解鎖音訊（不呼叫 preventDefault 以確保瀏覽器視為有效互動）
+    ['pointerdown', 'touchstart', 'touchend', 'click', 'keydown'].forEach(evtName => {
+      window.addEventListener(evtName, () => {
+        sfx.unlockAudio();
+      }, { passive: true });
+    });
+
+    // 顯示音效測試 Toast 提示
+    let toastTimer = null;
+    function showAudioToast(message) {
+      const toast = document.getElementById('audio-toast');
+      const textEl = document.getElementById('audio-toast-text');
+      if (!toast || !textEl) return;
+      textEl.textContent = message;
+      toast.classList.remove('opacity-0', '-translate-y-2');
+      toast.classList.add('opacity-100', 'translate-y-0');
+      if (toastTimer) clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => {
+        toast.classList.add('opacity-0', '-translate-y-2');
+        toast.classList.remove('opacity-100', 'translate-y-0');
+      }, 2400);
+    }
 
     /**************************************************************
      * 3. 遊戲狀態管理
@@ -945,9 +1268,9 @@
       }
     }
 
-    // 綁定首頁設定按鈕事件
+    // 綁定首頁設定按鈕事件（使用 click 以確保最佳觸控與音訊解鎖相容性）
     document.querySelectorAll('.mode-btn').forEach(btn => {
-      btn.addEventListener('pointerdown', () => {
+      btn.addEventListener('click', () => {
         sfx.click();
         state.mode = btn.dataset.mode;
         updateHomeSelectionsUI();
@@ -955,7 +1278,7 @@
     });
 
     document.querySelectorAll('.time-btn').forEach(btn => {
-      btn.addEventListener('pointerdown', () => {
+      btn.addEventListener('click', () => {
         sfx.click();
         state.duration = Number(btn.dataset.time);
         updateHomeSelectionsUI();
@@ -963,7 +1286,7 @@
     });
 
     document.querySelectorAll('.cat-btn').forEach(btn => {
-      btn.addEventListener('pointerdown', () => {
+      btn.addEventListener('click', () => {
         sfx.click();
         state.category = btn.dataset.cat;
         updateHomeSelectionsUI();
@@ -971,19 +1294,58 @@
     });
 
     document.querySelectorAll('.subcat-btn').forEach(btn => {
-      btn.addEventListener('pointerdown', () => {
+      btn.addEventListener('click', () => {
         sfx.click();
         state.subCategory = btn.dataset.sub;
         updateHomeSelectionsUI();
       });
     });
 
-    // 音效開關
-    document.getElementById('btn-sound').addEventListener('pointerdown', () => {
-      const isMuted = sfx.toggleMute();
+    // 測試音效按鈕（頂部列與首頁橫幅）
+    function triggerAudioTest() {
+      if (sfx.muted) {
+        sfx.toggleMute();
+        updateSoundButtonUI(false);
+      }
+      sfx.unlockAudio();
+      sfx.correct(3, true);
+      showAudioToast('🔔 叮咚！音效播放正常（含連對加分鈴聲）！');
+    }
+
+    function updateSoundButtonUI(isMuted) {
+      const btn = document.getElementById('btn-sound');
       document.getElementById('sound-icon').textContent = isMuted ? '🔇' : '🔊';
       document.getElementById('sound-label').textContent = isMuted ? '已靜音' : '音效開啟';
-      if (!isMuted) sfx.click();
+      btn.className = isMuted
+        ? 'px-2.5 py-1.5 rounded-xl bg-stone-700 hover:bg-stone-600 active:scale-95 text-stone-300 font-bold text-xs md:text-sm flex items-center gap-1 border border-stone-500 transition'
+        : 'px-2.5 py-1.5 rounded-xl bg-emerald-700 hover:bg-emerald-600 active:scale-95 text-white font-bold text-xs md:text-sm flex items-center gap-1 border border-emerald-400/60 transition';
+    }
+
+    document.getElementById('btn-test-sound').addEventListener('click', triggerAudioTest);
+    document.getElementById('btn-home-test-sound').addEventListener('click', triggerAudioTest);
+
+    // 語音朗讀 (TTS) 開關
+    document.getElementById('btn-tts').addEventListener('click', () => {
+      const enabled = sfx.toggleTTS();
+      const btn = document.getElementById('btn-tts');
+      document.getElementById('tts-label').textContent = enabled ? '語音朗讀: 開' : '語音朗讀: 關';
+      btn.className = enabled
+        ? 'px-2.5 py-1.5 rounded-xl bg-sky-700 hover:bg-sky-600 active:scale-95 text-white font-bold text-xs md:text-sm flex items-center gap-1 border border-sky-300 transition'
+        : 'px-2.5 py-1.5 rounded-xl bg-[#4A3528] hover:bg-[#5E4433] active:scale-95 text-amber-100 font-bold text-xs md:text-sm flex items-center gap-1 border border-amber-500/40 transition';
+      sfx.click();
+      showAudioToast(enabled ? '🗣️ 已開啟題目語音朗讀功能！' : '🗣️ 已關閉題目語音朗讀');
+    });
+
+    // 音效開關
+    document.getElementById('btn-sound').addEventListener('click', () => {
+      const isMuted = sfx.toggleMute();
+      updateSoundButtonUI(isMuted);
+      if (!isMuted) {
+        sfx.correct(1);
+        showAudioToast('🔊 音效已開啟！');
+      } else {
+        showAudioToast('🔇 音效已靜音');
+      }
     });
 
     /**************************************************************
@@ -1077,7 +1439,8 @@
     }
 
     function startGame() {
-      sfx.click();
+      sfx.unlockAudio();
+      sfx.start();
       stopConfetti();
       buildQuestionPool();
 
@@ -1179,13 +1542,17 @@
       if (!state.isPlaying) return;
       generateNextQuestion();
       state.isQuestionResolved = false;
-      state.lastTickSec = 4;
+      // 設定為 3，讓倒數跨入 2.0s 與 1.0s 時分別觸發清脆滴答音，避免與上一題按鈕音效重疊
+      state.lastTickSec = 3;
 
       if (state.mode === '1p') {
         render1PQuestion();
       } else {
         render2PQuestion();
       }
+
+      // 若開啟語音朗讀，朗讀題目文字
+      sfx.speakText(state.currentQ.prompt);
 
       // 啟動 3 秒高精度倒數
       state.qStartTime = performance.now();
@@ -1294,7 +1661,7 @@
         deltaScore = state.p1.winStreak;
         state.p1.score += deltaScore;
 
-        sfx.correct(state.p1.winStreak);
+        sfx.correct(state.p1.winStreak, false);
 
         fbBox.className = 'rounded-2xl p-3 sm:p-4 border-2 bg-emerald-50 border-emerald-500 text-emerald-950 flex flex-col sm:flex-row items-center justify-between gap-3 shrink-0 animate-pop';
         fbIcon.textContent = '🎉';
@@ -1312,7 +1679,7 @@
         deltaScore = -state.p1.loseStreak;
         state.p1.score += deltaScore;
 
-        sfx.wrong();
+        sfx.wrong(isTimeout);
 
         fbBox.className = 'rounded-2xl p-3 sm:p-4 border-2 bg-red-50 border-red-500 text-red-950 flex flex-col sm:flex-row items-center justify-between gap-3 shrink-0 animate-shake';
         fbIcon.textContent = isTimeout ? '⏰' : '❌';
@@ -1328,18 +1695,17 @@
       document.getElementById('p1-score').textContent = state.p1.score;
     }
 
-    // 綁定 1P 選項點擊與下一題
+    // 綁定 1P 選項點擊與下一題（不呼叫 preventDefault 以確保行動裝置音訊正常解鎖）
     document.querySelectorAll('.p1-opt-btn').forEach(btn => {
-      btn.addEventListener('pointerdown', (e) => {
-        e.preventDefault();
+      btn.addEventListener('pointerdown', () => {
         if (!state.isPlaying || state.isQuestionResolved) return;
+        sfx.unlockAudio();
         const idx = Number(btn.dataset.idx);
         resolve1PQuestion(idx);
       });
     });
 
-    document.getElementById('btn-p1-next').addEventListener('pointerdown', (e) => {
-      e.preventDefault();
+    document.getElementById('btn-p1-next').addEventListener('click', () => {
       if (!state.isPlaying) return;
       sfx.click();
       presentNextQuestion();
@@ -1453,9 +1819,10 @@
           redCorrect ? state.p2.red.winStreak + 1 : 1,
           whiteCorrect ? state.p2.white.winStreak + 1 : 1
         );
-        sfx.correct(maxStreak);
+        sfx.correct(maxStreak, fastestTeam !== null);
       } else {
-        sfx.wrong();
+        const bothTimeout = state.p2.red.choiceIdx === null && state.p2.white.choiceIdx === null;
+        sfx.wrong(bothTimeout);
       }
 
       // 分別結算並渲染紅隊與白隊回饋
@@ -1531,18 +1898,17 @@
       document.getElementById(`${team}-score`).textContent = tData.score;
     }
 
-    // 綁定 2P 雙人同時多點觸控選項事件
+    // 綁定 2P 雙人同時多點觸控選項事件（不呼叫 preventDefault 以免阻擋音訊播放）
     document.querySelectorAll('.p2-opt-btn').forEach(btn => {
-      btn.addEventListener('pointerdown', (e) => {
-        e.preventDefault();
+      btn.addEventListener('pointerdown', () => {
+        sfx.unlockAudio();
         const team = btn.dataset.team;
         const idx = Number(btn.dataset.idx);
         handle2PTeamSelect(team, idx);
       });
     });
 
-    document.getElementById('btn-p2-next').addEventListener('pointerdown', (e) => {
-      e.preventDefault();
+    document.getElementById('btn-p2-next').addEventListener('click', () => {
       if (!state.isPlaying) return;
       sfx.click();
       presentNextQuestion();
@@ -1617,10 +1983,10 @@
     }
 
     // 結算視窗與頂部導覽按鈕綁定
-    document.getElementById('btn-start-game').addEventListener('pointerdown', startGame);
-    document.getElementById('btn-play-again').addEventListener('pointerdown', startGame);
-    document.getElementById('btn-back-menu').addEventListener('pointerdown', returnToHome);
-    document.getElementById('btn-home').addEventListener('pointerdown', returnToHome);
+    document.getElementById('btn-start-game').addEventListener('click', startGame);
+    document.getElementById('btn-play-again').addEventListener('click', startGame);
+    document.getElementById('btn-back-menu').addEventListener('click', returnToHome);
+    document.getElementById('btn-home').addEventListener('click', returnToHome);
 
     /**************************************************************
      * 11. 慶祝彩帶粒子特效 (Canvas Confetti)
