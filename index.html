@@ -1,0 +1,1693 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>字字珠璣：題辭快手｜題辭與人物身份辨識遊戲</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&family=Noto+Serif+TC:wght@600;700;900&display=swap" rel="stylesheet">
+  
+  <style>
+    :root {
+      --bg-parchment: #FDF8EE;
+      --ink-dark: #261C15;
+      --vermilion: #C93B2B;
+      --gold: #D99B26;
+      --jade: #1E825E;
+    }
+
+    * {
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+      -webkit-user-select: none;
+      touch-action: manipulation;
+    }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100dvh;
+      overflow: hidden;
+      background-color: var(--bg-parchment);
+      color: var(--ink-dark);
+      font-family: 'Noto Sans TC', sans-serif;
+    }
+
+    .font-serif-tc {
+      font-family: 'Noto Serif TC', serif;
+    }
+
+    /* 傳統底紋背景 */
+    .bg-oriental-pattern {
+      background-color: #FAF3E3;
+      background-image: 
+        radial-gradient(circle at 20% 20%, rgba(217, 155, 38, 0.08) 0%, transparent 50%),
+        radial-gradient(circle at 80% 80%, rgba(201, 59, 43, 0.08) 0%, transparent 50%),
+        repeating-linear-gradient(45deg, rgba(180, 140, 90, 0.04) 0px, rgba(180, 140, 90, 0.04) 2px, transparent 2px, transparent 14px);
+    }
+
+    /* 中式牌匾外框 */
+    .plaque-border {
+      border: 3px solid #8C6239;
+      box-shadow: 
+        0 8px 0 #5E3F22,
+        0 12px 24px rgba(0, 0, 0, 0.12),
+        inset 0 0 0 3px #FDF8EE,
+        inset 0 0 0 5px #D9B382;
+    }
+
+    /* 3D 觸控按鈕特效 */
+    .btn-3d {
+      transition: transform 0.08s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.08s ease;
+    }
+    .btn-3d:active:not(:disabled) {
+      transform: translateY(4px) scale(0.98);
+    }
+
+    /* 答對與答錯動畫 */
+    @keyframes popIn {
+      0% { transform: scale(0.85); opacity: 0; }
+      70% { transform: scale(1.04); opacity: 1; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+    .animate-pop {
+      animation: popIn 0.28s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+    }
+
+    @keyframes shakeError {
+      0%, 100% { transform: translateX(0); }
+      20% { transform: translateX(-8px); }
+      40% { transform: translateX(8px); }
+      60% { transform: translateX(-6px); }
+      80% { transform: translateX(6px); }
+    }
+    .animate-shake {
+      animation: shakeError 0.38s ease-in-out;
+    }
+
+    @keyframes pulseUrgent {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.08); }
+    }
+    .animate-urgent {
+      animation: pulseUrgent 0.45s infinite ease-in-out;
+    }
+
+    @keyframes floatSlow {
+      0%, 100% { transform: translateY(0px); }
+      50% { transform: translateY(-6px); }
+    }
+    .animate-float {
+      animation: floatSlow 3s ease-in-out infinite;
+    }
+
+    /* 隱藏捲軸但允許小螢幕內部彈性滾動 */
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .no-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+  </style>
+</head>
+<body class="bg-oriental-pattern flex flex-col justify-between relative select-none">
+
+  <!-- 慶祝彩帶 Canvas -->
+  <canvas id="confetti-canvas" class="fixed inset-0 pointer-events-none z-50 w-full h-full"></canvas>
+
+  <!-- 頂部全域導覽與控制列 -->
+  <header class="w-full px-3 py-2 md:px-6 md:py-3 flex items-center justify-between bg-[#2C1E16] text-[#FDF8EE] border-b-4 border-[#D99B26] shadow-md z-30 shrink-0">
+    <div class="flex items-center gap-2 md:gap-3">
+      <button id="btn-home" class="hidden px-3 py-1.5 rounded-xl bg-[#4A3528] hover:bg-[#5E4433] active:scale-95 text-amber-200 font-bold text-xs md:text-sm flex items-center gap-1 border border-amber-500/40 transition">
+        <span>🏠</span> <span>返回首頁</span>
+      </button>
+      <div class="flex items-center gap-2">
+        <span class="w-7 h-7 md:w-8 md:h-8 rounded-lg bg-gradient-to-br from-red-600 to-amber-600 flex items-center justify-center font-serif-tc font-black text-white shadow-inner text-sm md:text-base border border-amber-300">辭</span>
+        <h1 class="font-serif-tc font-black text-base md:text-xl tracking-wider text-amber-100">字字珠璣：題辭快手</h1>
+      </div>
+    </div>
+
+    <!-- 遊戲進行時顯示的中央總時間倒數 -->
+    <div id="header-timer-box" class="hidden items-center gap-2 bg-[#1A110C] px-3.5 py-1 md:px-5 md:py-1.5 rounded-full border-2 border-amber-500/80 shadow-inner">
+      <span class="text-xs md:text-sm text-amber-300 font-bold">⏳ 剩餘時間</span>
+      <span id="global-timer-text" class="font-mono font-black text-lg md:text-2xl text-white tracking-wider">01:00</span>
+    </div>
+
+    <!-- 右側音效開關 -->
+    <div class="flex items-center gap-2">
+      <button id="btn-sound" class="px-3 py-1.5 rounded-xl bg-[#4A3528] hover:bg-[#5E4433] active:scale-95 text-amber-100 font-bold text-xs md:text-sm flex items-center gap-1.5 border border-amber-500/40 transition" title="切換音效">
+        <span id="sound-icon">🔊</span>
+        <span id="sound-label" class="hidden sm:inline">音效開啟</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- ==================== 1. 首頁與設定畫面 ==================== -->
+  <main id="screen-home" class="flex-1 w-full max-w-5xl mx-auto px-3 py-2 md:p-6 flex flex-col justify-between overflow-y-auto no-scrollbar z-10">
+    
+    <!-- 遊戲主視覺橫幅 -->
+    <div class="text-center my-auto py-2">
+      <div class="inline-block px-4 py-1 rounded-full bg-red-100 border border-red-300 text-red-800 font-bold text-xs md:text-sm mb-2 shadow-sm">
+        ✨ 國語文經典素養 ‧ 3秒極速反應挑戰 ✨
+      </div>
+      <h2 class="font-serif-tc font-black text-3xl sm:text-5xl md:text-6xl text-[#2C1E16] tracking-tight drop-shadow-sm">
+        字字珠璣 <span class="text-[#C93B2B]">題辭快手</span>
+      </h2>
+      <p class="text-xs sm:text-sm md:text-base text-stone-600 mt-1 md:mt-2 font-medium">
+        眼明手快辨典故！3 秒內完成二選一作答，連對加分無上限！
+      </p>
+    </div>
+
+    <!-- 設定面板卡片 -->
+    <div class="bg-white/90 backdrop-blur-md rounded-3xl plaque-border p-4 sm:p-6 md:p-7 my-auto flex flex-col gap-4 md:gap-5">
+      
+      <!-- 步驟 1：選擇遊戲模式 -->
+      <div>
+        <label class="block text-xs sm:text-sm font-black text-stone-500 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+          <span class="w-5 h-5 rounded-full bg-amber-600 text-white inline-flex items-center justify-center text-xs">1</span>
+          選擇遊戲模式
+        </label>
+        <div class="grid grid-cols-2 gap-3 md:gap-4">
+          <button type="button" data-mode="1p" class="mode-btn btn-3d p-3 sm:p-4 rounded-2xl border-3 bg-amber-50 border-amber-600 text-amber-950 shadow-[0_4px_0_#B45309] flex flex-col sm:flex-row items-center justify-center gap-2 text-center sm:text-left">
+            <span class="text-2xl sm:text-3xl">🧑‍🎓</span>
+            <div>
+              <div class="font-black text-base sm:text-lg md:text-xl">一人遊戲</div>
+              <div class="text-xs text-stone-600 hidden sm:block">單人闖關・可自選細項分類</div>
+            </div>
+          </button>
+          <button type="button" data-mode="2p" class="mode-btn btn-3d p-3 sm:p-4 rounded-2xl border-3 bg-stone-100 border-stone-300 text-stone-600 shadow-[0_4px_0_#A8A29E] flex flex-col sm:flex-row items-center justify-center gap-2 text-center sm:text-left">
+            <span class="text-2xl sm:text-3xl">⚔️</span>
+            <div>
+              <div class="font-black text-base sm:text-lg md:text-xl">兩人對戰模式</div>
+              <div class="text-xs text-stone-500 hidden sm:block">紅白同屏競技・最快答對+3分</div>
+            </div>
+          </button>
+        </div>
+      </div>
+
+      <!-- 步驟 2：選擇遊戲時間 -->
+      <div>
+        <label class="block text-xs sm:text-sm font-black text-stone-500 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+          <span class="w-5 h-5 rounded-full bg-amber-600 text-white inline-flex items-center justify-center text-xs">2</span>
+          選擇遊戲時間
+        </label>
+        <div class="grid grid-cols-3 gap-2.5 md:gap-4">
+          <button type="button" data-time="60" class="time-btn btn-3d py-2.5 sm:py-3 px-3 rounded-xl border-2 bg-red-600 border-red-800 text-white font-black text-sm sm:text-base md:text-lg shadow-[0_4px_0_#7F1D1D]">
+            ⏱️ 1 分鐘 <span class="text-xs font-normal hidden md:inline">(60秒)</span>
+          </button>
+          <button type="button" data-time="180" class="time-btn btn-3d py-2.5 sm:py-3 px-3 rounded-xl border-2 bg-stone-100 border-stone-300 text-stone-700 font-black text-sm sm:text-base md:text-lg shadow-[0_4px_0_#A8A29E]">
+            ⏱️ 3 分鐘 <span class="text-xs font-normal hidden md:inline">(180秒)</span>
+          </button>
+          <button type="button" data-time="300" class="time-btn btn-3d py-2.5 sm:py-3 px-3 rounded-xl border-2 bg-stone-100 border-stone-300 text-stone-700 font-black text-sm sm:text-base md:text-lg shadow-[0_4px_0_#A8A29E]">
+            ⏱️ 5 分鐘 <span class="text-xs font-normal hidden md:inline">(300秒)</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- 步驟 3：選擇題庫大類 -->
+      <div>
+        <label class="block text-xs sm:text-sm font-black text-stone-500 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+          <span class="w-5 h-5 rounded-full bg-amber-600 text-white inline-flex items-center justify-center text-xs">3</span>
+          選擇題目大類
+        </label>
+        <div class="grid grid-cols-2 gap-3 md:gap-4">
+          <button type="button" data-cat="identity" class="cat-btn btn-3d p-3 sm:p-3.5 rounded-2xl border-2 bg-emerald-700 border-emerald-900 text-white shadow-[0_4px_0_#064E3B] flex items-center justify-center gap-2">
+            <span class="text-xl sm:text-2xl">🎎</span>
+            <div class="text-left">
+              <div class="font-black text-sm sm:text-base md:text-lg">人物身份詞語</div>
+              <div class="text-[11px] text-emerald-100">共 35 題（弄瓦、椿庭、杏林等）</div>
+            </div>
+          </button>
+          <button type="button" data-cat="inscription" class="cat-btn btn-3d p-3 sm:p-3.5 rounded-2xl border-2 bg-stone-100 border-stone-300 text-stone-700 shadow-[0_4px_0_#A8A29E] flex items-center justify-center gap-2">
+            <span class="text-xl sm:text-2xl">📜</span>
+            <div class="text-left">
+              <div class="font-black text-sm sm:text-base md:text-lg">題辭</div>
+              <div class="text-[11px] text-stone-500">共 129 題（婚嫁、壽慶、開業等）</div>
+            </div>
+          </button>
+        </div>
+      </div>
+
+      <!-- 步驟 4：一人遊戲專屬「題辭」小題分組選擇 -->
+      <div id="subcat-container" class="hidden bg-amber-50/90 p-3 sm:p-4 rounded-2xl border-2 border-amber-300">
+        <label class="block text-xs sm:text-sm font-black text-amber-900 mb-2 flex items-center justify-between">
+          <span>📂 選擇「題辭」小題分組（一人遊戲專屬）：</span>
+          <span id="subcat-count-badge" class="text-xs bg-amber-200 text-amber-900 px-2 py-0.5 rounded-full font-bold">129 題</span>
+        </label>
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+          <button type="button" data-sub="不分類" class="subcat-btn btn-3d py-2 px-2.5 rounded-xl border-2 bg-amber-600 border-amber-800 text-white font-bold text-xs sm:text-sm shadow-[0_3px_0_#78350F]">
+            🌟 不分類 (全部)
+          </button>
+          <button type="button" data-sub="婚嫁" class="subcat-btn btn-3d py-2 px-2.5 rounded-xl border-2 bg-white border-amber-300 text-stone-700 font-bold text-xs sm:text-sm shadow-[0_3px_0_#D97706]">
+            💒 婚嫁
+          </button>
+          <button type="button" data-sub="生育" class="subcat-btn btn-3d py-2 px-2.5 rounded-xl border-2 bg-white border-amber-300 text-stone-700 font-bold text-xs sm:text-sm shadow-[0_3px_0_#D97706]">
+            👶 生育
+          </button>
+          <button type="button" data-sub="壽慶" class="subcat-btn btn-3d py-2 px-2.5 rounded-xl border-2 bg-white border-amber-300 text-stone-700 font-bold text-xs sm:text-sm shadow-[0_3px_0_#D97706]">
+            🍑 壽慶
+          </button>
+          <button type="button" data-sub="比賽" class="subcat-btn btn-3d py-2 px-2.5 rounded-xl border-2 bg-white border-amber-300 text-stone-700 font-bold text-xs sm:text-sm shadow-[0_3px_0_#D97706]">
+            🏆 比賽
+          </button>
+          <button type="button" data-sub="開業" class="subcat-btn btn-3d py-2 px-2.5 rounded-xl border-2 bg-white border-amber-300 text-stone-700 font-bold text-xs sm:text-sm shadow-[0_3px_0_#D97706]">
+            🎊 開業
+          </button>
+          <button type="button" data-sub="居室、當選、畢業、校慶" class="subcat-btn btn-3d py-2 px-2 rounded-xl border-2 bg-white border-amber-300 text-stone-700 font-bold text-[11px] sm:text-xs shadow-[0_3px_0_#D97706]">
+            🎓 居室/當選/畢業/校慶
+          </button>
+          <button type="button" data-sub="哀輓" class="subcat-btn btn-3d py-2 px-2.5 rounded-xl border-2 bg-white border-amber-300 text-stone-700 font-bold text-xs sm:text-sm shadow-[0_3px_0_#D97706]">
+            🕯️ 哀輓
+          </button>
+        </div>
+      </div>
+
+      <!-- 規則小提示與開始按鈕 -->
+      <div class="flex flex-col sm:flex-row items-center justify-between gap-3 pt-1 border-t border-stone-200">
+        <div class="text-xs text-stone-600 space-y-0.5 text-center sm:text-left">
+          <div>💡 <b>計分規則</b>：每題限時 <b>3 秒</b>！連續答對依序 <b>+1, +2, +3...</b>；連續答錯或逾時依序 <b>-1, -2, -3...</b></div>
+          <div id="rule-2p-hint" class="hidden text-red-700 font-bold">⚡ <b>對戰加成</b>：雙人對戰中，該題最快答對的小隊額外再 <b>+3 分</b>！</div>
+        </div>
+        <button id="btn-start-game" class="w-full sm:w-auto min-w-[200px] btn-3d py-3.5 px-8 rounded-2xl bg-gradient-to-r from-[#C93B2B] to-[#E0533C] hover:from-[#B53223] hover:to-[#C93B2B] text-white font-serif-tc font-black text-xl md:text-2xl tracking-widest border-2 border-amber-300 shadow-[0_6px_0_#7F1D1D] flex items-center justify-center gap-2 shrink-0">
+          <span>開始挑戰</span> <span>🚀</span>
+        </button>
+      </div>
+
+    </div>
+  </main>
+
+  <!-- ==================== 2. 一人遊戲畫面 ==================== -->
+  <main id="screen-1p" class="hidden flex-1 w-full max-w-4xl mx-auto px-3 py-2 md:p-5 flex-col justify-between gap-2 md:gap-4 overflow-hidden z-10">
+    
+    <!-- 單人資訊狀態列 -->
+    <div class="grid grid-cols-3 gap-2 md:gap-4 bg-white/90 rounded-2xl p-2.5 md:p-3.5 border-2 border-amber-700/30 shadow-sm shrink-0">
+      <div class="flex flex-col items-center justify-center border-r border-stone-200 px-1">
+        <span class="text-[11px] md:text-xs font-bold text-stone-500">目前題庫</span>
+        <span id="p1-category-label" class="font-black text-xs sm:text-sm md:text-base text-stone-800 truncate max-w-full">人物身份詞語</span>
+      </div>
+      <div class="flex flex-col items-center justify-center border-r border-stone-200 px-1">
+        <span class="text-[11px] md:text-xs font-bold text-stone-500">連續狀態</span>
+        <div id="p1-streak-badge" class="font-black text-xs sm:text-sm md:text-base text-amber-700">準備出題</div>
+      </div>
+      <div class="flex flex-col items-center justify-center px-1">
+        <span class="text-[11px] md:text-xs font-bold text-stone-500">累積總分</span>
+        <div class="flex items-baseline gap-1">
+          <span id="p1-score" class="font-mono font-black text-2xl sm:text-3xl md:text-4xl text-[#C93B2B]">0</span>
+          <span class="text-xs font-bold text-stone-500">分</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 題目與 3 秒倒數主區 -->
+    <div class="flex-1 bg-white rounded-3xl plaque-border p-4 sm:p-6 flex flex-col justify-between relative overflow-hidden min-h-0">
+      
+      <!-- 3 秒倒數進度條與秒數 -->
+      <div class="w-full shrink-0">
+        <div class="flex items-center justify-between mb-1.5">
+          <span class="text-xs sm:text-sm font-black text-stone-600 flex items-center gap-1">
+            <span>⚡ 作答倒數</span>
+            <span class="text-xs font-normal text-stone-400">（3秒內請選擇正確答案）</span>
+          </span>
+          <span id="p1-q-timer-num" class="font-mono font-black text-lg sm:text-2xl text-red-600">3.0s</span>
+        </div>
+        <div class="w-full h-3.5 sm:h-4 bg-stone-200 rounded-full overflow-hidden p-0.5 border border-stone-300">
+          <div id="p1-q-timer-bar" class="h-full bg-gradient-to-r from-emerald-500 via-amber-500 to-red-600 rounded-full transition-none" style="width: 100%;"></div>
+        </div>
+      </div>
+
+      <!-- 單題題目顯示區 -->
+      <div class="my-auto py-3 text-center flex flex-col items-center justify-center">
+        <div id="p1-q-subtag" class="inline-block px-3 py-0.5 rounded-full bg-amber-100 text-amber-900 border border-amber-300 text-xs font-bold mb-2">
+          題目辨識
+        </div>
+        <div id="p1-q-prompt" class="font-serif-tc font-black text-4xl sm:text-5xl md:text-6xl text-[#2C1E16] tracking-wide leading-tight px-2">
+          弄「瓦」
+        </div>
+      </div>
+
+      <!-- 作答回饋橫幅（作答後或逾時後出現） -->
+      <div id="p1-feedback-box" class="hidden rounded-2xl p-3 sm:p-4 border-2 flex-col sm:flex-row items-center justify-between gap-3 shrink-0 animate-pop">
+        <div class="flex items-center gap-3 text-center sm:text-left flex-col sm:flex-row">
+          <div id="p1-fb-icon" class="text-3xl sm:text-4xl shrink-0">⭕</div>
+          <div>
+            <div id="p1-fb-title" class="font-black text-base sm:text-lg md:text-xl">回答正確！</div>
+            <div id="p1-fb-desc" class="text-xs sm:text-sm font-bold mt-0.5">本題得分：+1 分 ｜ 累積得分：1 分</div>
+          </div>
+        </div>
+        <button id="btn-p1-next" class="w-full sm:w-auto btn-3d py-2.5 sm:py-3 px-6 rounded-xl bg-[#2C1E16] hover:bg-[#422E22] text-amber-200 font-black text-base sm:text-lg border-2 border-amber-400 shadow-[0_4px_0_#000] shrink-0 flex items-center justify-center gap-1.5">
+          <span>下一題</span> <span>➔</span>
+        </button>
+      </div>
+
+    </div>
+
+    <!-- 下方二選一觸控選項區 -->
+    <div class="grid grid-cols-2 gap-3 sm:gap-5 shrink-0 h-28 sm:h-36 md:h-40">
+      <button id="p1-opt-0" data-idx="0" class="p1-opt-btn btn-3d h-full rounded-3xl bg-white hover:bg-amber-50 border-4 border-[#8C6239] shadow-[0_7px_0_#5E3F22] flex flex-col items-center justify-center p-3 text-center relative overflow-hidden">
+        <span class="text-xs font-bold text-amber-800 bg-amber-100 px-2.5 py-0.5 rounded-full mb-1">選項 A</span>
+        <span class="opt-text font-serif-tc font-black text-2xl sm:text-3xl md:text-4xl text-[#2C1E16]">女兒</span>
+      </button>
+      <button id="p1-opt-1" data-idx="1" class="p1-opt-btn btn-3d h-full rounded-3xl bg-white hover:bg-amber-50 border-4 border-[#8C6239] shadow-[0_7px_0_#5E3F22] flex flex-col items-center justify-center p-3 text-center relative overflow-hidden">
+        <span class="text-xs font-bold text-amber-800 bg-amber-100 px-2.5 py-0.5 rounded-full mb-1">選項 B</span>
+        <span class="opt-text font-serif-tc font-black text-2xl sm:text-3xl md:text-4xl text-[#2C1E16]">兒子</span>
+      </button>
+    </div>
+
+  </main>
+
+  <!-- ==================== 3. 兩人對戰畫面（紅白大對決） ==================== -->
+  <main id="screen-2p" class="hidden flex-1 w-full max-w-6xl mx-auto px-2.5 py-2 md:p-4 flex-col justify-between gap-2 md:gap-3 overflow-hidden z-10">
+    
+    <!-- 上方共用題目與 3 秒倒數區 -->
+    <div class="bg-white rounded-3xl plaque-border p-3 sm:p-4 md:p-5 flex flex-col gap-2 shrink-0 relative">
+      <!-- 頂部 3 秒倒數條 -->
+      <div class="flex items-center gap-3">
+        <span class="text-xs sm:text-sm font-black text-stone-700 shrink-0">⚡ 限時 3 秒</span>
+        <div class="flex-1 h-3 sm:h-4 bg-stone-200 rounded-full overflow-hidden p-0.5 border border-stone-300">
+          <div id="p2-q-timer-bar" class="h-full bg-gradient-to-r from-emerald-500 via-amber-500 to-red-600 rounded-full transition-none" style="width: 100%;"></div>
+        </div>
+        <span id="p2-q-timer-num" class="font-mono font-black text-base sm:text-xl text-red-600 w-14 text-right shrink-0">3.0s</span>
+      </div>
+
+      <!-- 中央題目與下一題按鈕 -->
+      <div class="flex flex-col sm:flex-row items-center justify-between gap-2 py-1 sm:py-2">
+        <div class="flex-1 text-center">
+          <span id="p2-q-subtag" class="inline-block px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-900 text-[11px] sm:text-xs font-bold mb-1">
+            雙人搶答
+          </span>
+          <div id="p2-q-prompt" class="font-serif-tc font-black text-3xl sm:text-4xl md:text-5xl text-[#2C1E16] tracking-wide">
+            百年好合
+          </div>
+        </div>
+
+        <!-- 開獎後出現的「下一題」按鈕 -->
+        <div id="p2-next-wrap" class="hidden shrink-0 animate-pop">
+          <button id="btn-p2-next" class="btn-3d py-2.5 px-6 sm:py-3 sm:px-8 rounded-2xl bg-[#2C1E16] hover:bg-[#422E22] text-amber-200 font-black text-base sm:text-xl border-2 border-amber-400 shadow-[0_5px_0_#000] flex items-center gap-2">
+            <span>下一題</span> <span>➔</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 下方左右雙欄：左紅隊、右白隊 -->
+    <div class="flex-1 grid grid-cols-2 gap-2.5 sm:gap-4 md:gap-6 min-h-0">
+      
+      <!-- 🚩 左欄：紅隊 (Red Team) -->
+      <section id="red-zone" class="bg-gradient-to-b from-red-50 to-red-100/90 rounded-3xl border-4 border-red-600 shadow-lg p-2.5 sm:p-4 flex flex-col justify-between relative overflow-hidden">
+        <!-- 紅隊標頭與分數 -->
+        <div class="bg-red-600 text-white rounded-2xl p-2 sm:p-3 flex items-center justify-between shadow-sm shrink-0">
+          <div class="flex items-center gap-1.5 sm:gap-2">
+            <span class="text-lg sm:text-2xl">🔴</span>
+            <div>
+              <div class="font-black text-sm sm:text-lg md:text-xl leading-none">紅隊</div>
+              <div id="red-streak-text" class="text-[10px] sm:text-xs text-red-100 font-bold mt-0.5">準備作答</div>
+            </div>
+          </div>
+          <div class="text-right">
+            <div class="text-[10px] sm:text-xs text-red-100">累積得分</div>
+            <div class="font-mono font-black text-xl sm:text-3xl leading-none"><span id="red-score">0</span><span class="text-xs ml-0.5">分</span></div>
+          </div>
+        </div>
+
+        <!-- 紅隊狀態 / 回饋區 -->
+        <div id="red-status-area" class="my-auto py-1.5 px-2 text-center flex flex-col items-center justify-center min-h-[72px] sm:min-h-[90px]">
+          <div id="red-waiting-msg" class="text-xs sm:text-sm font-bold text-red-800/70 bg-red-200/60 px-3 py-1.5 rounded-full">
+            👆 請於下方點選正確答案
+          </div>
+          <!-- 開獎回饋卡片 -->
+          <div id="red-feedback-card" class="hidden w-full rounded-2xl p-2 sm:p-3 border-2 text-center animate-pop">
+            <div id="red-fb-badge" class="font-black text-sm sm:text-lg">⭕ 答對了！</div>
+            <div id="red-fb-detail" class="text-xs sm:text-sm font-bold mt-0.5">本題 +1 分</div>
+            <div id="red-fb-explain" class="text-[11px] sm:text-xs mt-1 font-medium"></div>
+          </div>
+        </div>
+
+        <!-- 紅隊二選一按鈕（一模一樣的選項與順序） -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3 shrink-0">
+          <button type="button" data-team="red" data-idx="0" class="p2-opt-btn red-opt btn-3d py-3.5 sm:py-5 px-2 rounded-2xl bg-white hover:bg-red-50 border-3 border-red-600 shadow-[0_5px_0_#991B1B] flex flex-col items-center justify-center">
+            <span class="text-[10px] sm:text-xs font-bold text-red-700 bg-red-100 px-2 py-0.5 rounded-full mb-0.5">選項 A</span>
+            <span class="opt-text font-serif-tc font-black text-lg sm:text-2xl md:text-3xl text-stone-900">結婚</span>
+          </button>
+          <button type="button" data-team="red" data-idx="1" class="p2-opt-btn red-opt btn-3d py-3.5 sm:py-5 px-2 rounded-2xl bg-white hover:bg-red-50 border-3 border-red-600 shadow-[0_5px_0_#991B1B] flex flex-col items-center justify-center">
+            <span class="text-[10px] sm:text-xs font-bold text-red-700 bg-red-100 px-2 py-0.5 rounded-full mb-0.5">選項 B</span>
+            <span class="opt-text font-serif-tc font-black text-lg sm:text-2xl md:text-3xl text-stone-900">訂婚</span>
+          </button>
+        </div>
+      </section>
+
+      <!-- 🏳️ 右欄：白隊 (White Team) -->
+      <section id="white-zone" class="bg-gradient-to-b from-slate-50 to-sky-100/80 rounded-3xl border-4 border-slate-600 shadow-lg p-2.5 sm:p-4 flex flex-col justify-between relative overflow-hidden">
+        <!-- 白隊標頭與分數 -->
+        <div class="bg-slate-700 text-white rounded-2xl p-2 sm:p-3 flex items-center justify-between shadow-sm shrink-0">
+          <div class="flex items-center gap-1.5 sm:gap-2">
+            <span class="text-lg sm:text-2xl">⚪</span>
+            <div>
+              <div class="font-black text-sm sm:text-lg md:text-xl leading-none">白隊</div>
+              <div id="white-streak-text" class="text-[10px] sm:text-xs text-slate-200 font-bold mt-0.5">準備作答</div>
+            </div>
+          </div>
+          <div class="text-right">
+            <div class="text-[10px] sm:text-xs text-slate-200">累積得分</div>
+            <div class="font-mono font-black text-xl sm:text-3xl leading-none"><span id="white-score">0</span><span class="text-xs ml-0.5">分</span></div>
+          </div>
+        </div>
+
+        <!-- 白隊狀態 / 回饋區 -->
+        <div id="white-status-area" class="my-auto py-1.5 px-2 text-center flex flex-col items-center justify-center min-h-[72px] sm:min-h-[90px]">
+          <div id="white-waiting-msg" class="text-xs sm:text-sm font-bold text-slate-700 bg-slate-200/80 px-3 py-1.5 rounded-full">
+            👆 請於下方點選正確答案
+          </div>
+          <!-- 開獎回饋卡片 -->
+          <div id="white-feedback-card" class="hidden w-full rounded-2xl p-2 sm:p-3 border-2 text-center animate-pop">
+            <div id="white-fb-badge" class="font-black text-sm sm:text-lg">⭕ 答對了！</div>
+            <div id="white-fb-detail" class="text-xs sm:text-sm font-bold mt-0.5">本題 +1 分</div>
+            <div id="white-fb-explain" class="text-[11px] sm:text-xs mt-1 font-medium"></div>
+          </div>
+        </div>
+
+        <!-- 白隊二選一按鈕（一模一樣的選項與順序） -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3 shrink-0">
+          <button type="button" data-team="white" data-idx="0" class="p2-opt-btn white-opt btn-3d py-3.5 sm:py-5 px-2 rounded-2xl bg-white hover:bg-slate-50 border-3 border-slate-600 shadow-[0_5px_0_#334155] flex flex-col items-center justify-center">
+            <span class="text-[10px] sm:text-xs font-bold text-slate-700 bg-slate-200 px-2 py-0.5 rounded-full mb-0.5">選項 A</span>
+            <span class="opt-text font-serif-tc font-black text-lg sm:text-2xl md:text-3xl text-stone-900">結婚</span>
+          </button>
+          <button type="button" data-team="white" data-idx="1" class="p2-opt-btn white-opt btn-3d py-3.5 sm:py-5 px-2 rounded-2xl bg-white hover:bg-slate-50 border-3 border-slate-600 shadow-[0_5px_0_#334155] flex flex-col items-center justify-center">
+            <span class="text-[10px] sm:text-xs font-bold text-slate-700 bg-slate-200 px-2 py-0.5 rounded-full mb-0.5">選項 B</span>
+            <span class="opt-text font-serif-tc font-black text-lg sm:text-2xl md:text-3xl text-stone-900">訂婚</span>
+          </button>
+        </div>
+      </section>
+
+    </div>
+  </main>
+
+  <!-- ==================== 4. 結算與勝隊祝賀畫面 ==================== -->
+  <div id="modal-result" class="hidden fixed inset-0 bg-black/75 backdrop-blur-sm z-40 flex items-center justify-center p-4">
+    <div class="bg-[#FDF8EE] w-full max-w-2xl rounded-3xl plaque-border p-5 sm:p-8 text-center flex flex-col items-center justify-between gap-4 animate-pop max-h-[92dvh] overflow-y-auto no-scrollbar">
+      
+      <div class="text-5xl sm:text-6xl animate-float" id="res-trophy">🏆</div>
+      <div>
+        <div id="res-subtitle" class="inline-block px-4 py-1 rounded-full bg-amber-100 border border-amber-400 text-amber-900 font-bold text-xs sm:text-sm mb-2">
+          時間到！挑戰結束
+        </div>
+        <h2 id="res-title" class="font-serif-tc font-black text-3xl sm:text-5xl text-[#C93B2B]">
+          恭喜完成挑戰！
+        </h2>
+      </div>
+
+      <!-- 單人結算面板 -->
+      <div id="res-1p-board" class="w-full grid grid-cols-3 gap-3 bg-white p-4 rounded-2xl border-2 border-amber-200 shadow-inner">
+        <div>
+          <div class="text-xs text-stone-500 font-bold">最終總分</div>
+          <div id="res-1p-score" class="font-mono font-black text-3xl sm:text-4xl text-[#C93B2B] mt-1">0</div>
+        </div>
+        <div class="border-x border-stone-200">
+          <div class="text-xs text-stone-500 font-bold">答對 / 總題數</div>
+          <div id="res-1p-acc" class="font-mono font-black text-xl sm:text-2xl text-emerald-700 mt-2">0 / 0</div>
+        </div>
+        <div>
+          <div class="text-xs text-stone-500 font-bold">最高連對</div>
+          <div id="res-1p-streak" class="font-mono font-black text-xl sm:text-2xl text-amber-600 mt-2">0 題</div>
+        </div>
+      </div>
+
+      <!-- 雙人對戰結算面板 -->
+      <div id="res-2p-board" class="hidden w-full grid grid-cols-2 gap-4">
+        <div id="res-red-card" class="p-4 rounded-2xl bg-red-50 border-3 border-red-500 flex flex-col items-center relative">
+          <span id="res-red-crown" class="hidden absolute -top-4 text-3xl">👑</span>
+          <div class="font-black text-lg text-red-800">🔴 紅隊</div>
+          <div id="res-red-score" class="font-mono font-black text-4xl sm:text-5xl text-red-600 my-2">0</div>
+          <div id="res-red-stats" class="text-xs text-stone-600 font-bold">答對 0 題｜最高連對 0</div>
+        </div>
+        <div id="res-white-card" class="p-4 rounded-2xl bg-slate-50 border-3 border-slate-500 flex flex-col items-center relative">
+          <span id="res-white-crown" class="hidden absolute -top-4 text-3xl">👑</span>
+          <div class="font-black text-lg text-slate-800">⚪ 白隊</div>
+          <div id="res-white-score" class="font-mono font-black text-4xl sm:text-5xl text-slate-700 my-2">0</div>
+          <div id="res-white-stats" class="text-xs text-stone-600 font-bold">答對 0 題｜最高連對 0</div>
+        </div>
+      </div>
+
+      <!-- 操作按鈕 -->
+      <div class="w-full flex flex-col sm:flex-row gap-3 mt-2">
+        <button id="btn-play-again" class="flex-1 btn-3d py-3.5 px-6 rounded-2xl bg-gradient-to-r from-[#C93B2B] to-[#E0533C] text-white font-black text-lg border-2 border-amber-300 shadow-[0_5px_0_#7F1D1D]">
+          🔄 再玩一次
+        </button>
+        <button id="btn-back-menu" class="flex-1 btn-3d py-3.5 px-6 rounded-2xl bg-[#2C1E16] text-amber-100 font-black text-lg border-2 border-amber-500 shadow-[0_5px_0_#000]">
+          🏠 返回主選單
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ==================== JavaScript 遊戲核心邏輯 ==================== -->
+  <script>
+    /**************************************************************
+     * 1. 完整內建題庫資料（依據題辭題庫試算表一字不漏建立）
+     **************************************************************/
+    // 「人物身份詞語」題庫：[單題題目, 答案文字, 答案分組]
+    const IDENTITY_QUESTIONS = [
+      ["弄「瓦」", "女兒", "A"],
+      ["「明珠」入掌", "女兒", "A"],
+      ["喜得「千金」", "女兒", "A"],
+      ["彩「鳳」新「雛」", "女兒", "A"],
+      ["「瑤池」春永", "女性長輩", "B"],
+      ["駕返「瑤池」", "女性長輩", "B"],
+      ["「懿」範長留", "女性長輩", "B"],
+      ["「淑」德永昭", "女性長輩", "B"],
+      ["「椿」庭長青", "父親", "C"],
+      ["樹茂椿「庭」", "父親", "C"],
+      ["椿「庭」長青", "父親", "C"],
+      ["樹茂「椿」庭", "父親", "C"],
+      ["「萱草」長春", "母親", "B"],
+      ["「慈竹」長青", "母親", "B"],
+      ["「慈竹」風摧", "母親", "B"],
+      ["春滿「北堂」", "母親", "B"],
+      ["「北堂」萱茂", "母親", "B"],
+      ["北堂「萱」茂", "母親", "B"],
+      ["「南極星」沉", "男性長輩", "C"],
+      ["「松柏」長青", "男性長輩", "C"],
+      ["「道」範長存", "男性長輩", "C"],
+      ["弄「璋」", "兒子", "D"],
+      ["天賜「麟兒」", "兒子", "D"],
+      ["夢「熊」之喜", "兒子", "D"],
+      ["痛失「知音」", "朋友", "E"],
+      ["「桃李」芬芳", "學生", "F"],
+      ["作育「英才」", "學生", "F"],
+      ["「桃李」興悲", "學生", "F"],
+      ["「木」壞「山」頹", "學者", "G"],
+      ["天喪「斯文」", "學者", "G"],
+      ["「泰山」其頹", "學者", "G"],
+      ["「梁木」其壞", "學者", "G"],
+      ["「杏林」春暖", "醫生", "H"],
+      ["「懸壺」濟世", "醫生", "H"],
+      ["「華陀」再世", "醫生", "H"]
+    ];
+
+    // 「題辭」題庫：[小題分組, 單題題目, 答案文字, 答案分組]
+    const INSCRIPTION_QUESTIONS = [
+      ["婚嫁", "文定吉祥", "訂婚", "1"],
+      ["婚嫁", "誓約同心", "訂婚", "1"],
+      ["婚嫁", "天作之合", "結婚", "2"],
+      ["婚嫁", "百年好合", "結婚", "3"],
+      ["婚嫁", "珠聯璧合", "結婚", "3"],
+      ["婚嫁", "鸞鳳和鳴", "結婚", "3"],
+      ["婚嫁", "琴瑟和諧", "結婚", "3"],
+      ["婚嫁", "佳偶天成", "結婚", "3"],
+      ["婚嫁", "永結同心", "結婚", "3"],
+      ["婚嫁", "永浴愛河", "結婚", "3"],
+      ["婚嫁", "鳳凰于飛", "結婚", "3"],
+      ["婚嫁", "花開並蒂", "結婚", "3"],
+      ["婚嫁", "花開連理", "結婚", "3"],
+      ["婚嫁", "秦晉之好", "結婚", "3"],
+      ["婚嫁", "之子于歸", "嫁女/出嫁", "4"],
+      ["婚嫁", "宜室宜家", "嫁女/出嫁", "4"],
+      ["婚嫁", "雀屏妙選", "嫁女/出嫁", "4"],
+      ["生育", "弄璋誌喜", "生子", "5"],
+      ["生育", "天賜麟兒", "生子", "5"],
+      ["生育", "熊羆入夢", "生子", "5"],
+      ["生育", "夢熊之喜", "生子", "5"],
+      ["生育", "啼試英聲", "生子", "5"],
+      ["生育", "弄瓦誌喜", "生女", "6"],
+      ["生育", "明珠入掌", "生女", "6"],
+      ["生育", "喜得千金", "生女", "6"],
+      ["生育", "彩鳳新雛", "生女", "6"],
+      ["生育", "喜比螽麟", "生女", "6"],
+      ["生育", "小鳳新聲", "生女", "6"],
+      ["壽慶", "松柏長青", "男壽", "7"],
+      ["壽慶", "椿庭長青", "男壽", "7"],
+      ["壽慶", "樹茂椿庭", "男壽", "7"],
+      ["壽慶", "頌獻南山", "男壽", "7"],
+      ["壽慶", "星輝南極", "男壽", "7"],
+      ["壽慶", "萱草長春", "女壽", "8"],
+      ["壽慶", "慈竹長青", "女壽", "8"],
+      ["壽慶", "瑤池春永", "女壽", "8"],
+      ["壽慶", "春滿北堂", "女壽", "8"],
+      ["壽慶", "果獻蟠桃", "女壽", "8"],
+      ["壽慶", "北堂萱茂", "女壽", "8"],
+      ["壽慶", "椿萱並茂", "男女雙壽", "9"],
+      ["壽慶", "雙星並輝", "男女雙壽", "9"],
+      ["壽慶", "福祿鴛鴦", "男女雙壽", "9"],
+      ["壽慶", "萬壽無疆", "男女壽通用", "10"],
+      ["壽慶", "福如東海", "男女壽通用", "10"],
+      ["壽慶", "壽比南山", "男女壽通用", "10"],
+      ["比賽", "妙筆生花", "作文", "11"],
+      ["比賽", "文采斐然", "作文", "11"],
+      ["比賽", "文情並茂", "作文", "11"],
+      ["比賽", "文章天成", "作文", "11"],
+      ["比賽", "字字珠璣", "作文", "11"],
+      ["比賽", "入木三分", "書法", "11"],
+      ["比賽", "秀麗遒勁", "書法", "11"],
+      ["比賽", "筆走龍蛇", "書法", "11"],
+      ["比賽", "鐵畫銀鉤", "書法", "11"],
+      ["比賽", "舞姿曼妙", "舞蹈", "12"],
+      ["比賽", "舞藝超群", "舞蹈", "12"],
+      ["比賽", "飄逸生姿", "舞蹈", "12"],
+      ["比賽", "玉潤珠圓", "音樂", "13"],
+      ["比賽", "繞梁三日", "音樂", "13"],
+      ["比賽", "新鶯出谷", "音樂", "13"],
+      ["比賽", "維妙維肖", "戲劇", "14"],
+      ["比賽", "演技精湛", "戲劇", "14"],
+      ["比賽", "唱作俱佳", "戲劇", "14"],
+      ["比賽", "口若懸河", "演講辯論", "15"],
+      ["比賽", "一鳴驚人", "演講辯論", "15"],
+      ["比賽", "議論風生", "演講辯論", "15"],
+      ["比賽", "辯才無礙", "演講辯論", "15"],
+      ["比賽", "生龍活虎", "運動會", "16"],
+      ["比賽", "允文允武", "運動會", "16"],
+      ["比賽", "龍騰虎躍", "運動會", "16"],
+      ["比賽", "身手矯健", "運動會", "16"],
+      ["開業", "萬商雲集", "公司行號", "17"],
+      ["開業", "大展鴻圖", "公司行號", "17"],
+      ["開業", "駿業宏開", "公司行號", "17"],
+      ["開業", "仁心仁術", "醫院", "18"],
+      ["開業", "妙手回春", "醫院", "18"],
+      ["開業", "杏林春暖", "醫院", "18"],
+      ["開業", "華佗再世", "醫院", "18"],
+      ["開業", "懸壺濟世", "醫院", "18"],
+      ["開業", "高朋滿座", "餐廳", "19"],
+      ["開業", "近悅遠來", "餐廳", "19"],
+      ["開業", "佳味餚香", "餐廳", "19"],
+      ["開業", "貴客盈門", "旅館業", "19"],
+      ["開業", "賓至如歸", "旅館業", "19"],
+      ["居室、當選、畢業、校慶", "里仁為美", "遷居", "20"],
+      ["居室、當選、畢業、校慶", "德必有鄰", "遷居", "20"],
+      ["居室、當選、畢業、校慶", "喬遷誌喜", "遷居", "20"],
+      ["居室、當選、畢業、校慶", "美輪美奐", "新居", "21"],
+      ["居室、當選、畢業、校慶", "華屋生輝", "新居", "21"],
+      ["居室、當選、畢業、校慶", "桑梓之光", "當選", "22"],
+      ["居室、當選、畢業、校慶", "眾望所歸", "當選", "22"],
+      ["居室、當選、畢業、校慶", "為民喉舌", "當選", "22"],
+      ["居室、當選、畢業、校慶", "造福鄉里", "當選", "22"],
+      ["居室、當選、畢業、校慶", "前程似錦", "畢業", "23"],
+      ["居室、當選、畢業、校慶", "青雲有志", "畢業", "23"],
+      ["居室、當選、畢業、校慶", "鵬程萬里", "畢業", "23"],
+      ["居室、當選、畢業、校慶", "百年樹人", "校慶", "24"],
+      ["居室、當選、畢業、校慶", "時雨春風", "校慶", "24"],
+      ["居室、當選、畢業、校慶", "春風化雨", "校慶", "24"],
+      ["居室、當選、畢業、校慶", "作育英才", "校慶", "24"],
+      ["居室、當選、畢業、校慶", "濟濟多士", "校慶", "24"],
+      ["居室、當選、畢業、校慶", "桃李芬芳", "校慶", "24"],
+      ["哀輓", "遽返道山", "男喪", "25"],
+      ["哀輓", "典型宛在", "男喪", "25"],
+      ["哀輓", "德業長昭", "男喪", "25"],
+      ["哀輓", "道範長存", "男喪", "25"],
+      ["哀輓", "南極星沉", "男喪", "25"],
+      ["哀輓", "蓬島歸真", "男喪", "25"],
+      ["哀輓", "母儀千古", "女喪", "26"],
+      ["哀輓", "駕返瑤池", "女喪", "26"],
+      ["哀輓", "淑德永昭", "女喪", "26"],
+      ["哀輓", "懿範長留", "女喪", "26"],
+      ["哀輓", "北堂春去", "女喪", "26"],
+      ["哀輓", "瑤池赴召", "女喪", "26"],
+      ["哀輓", "慈竹風摧", "女喪", "26"],
+      ["哀輓", "坤儀宛在", "女喪", "26"],
+      ["哀輓", "音容宛在", "男女喪通用", "27"],
+      ["哀輓", "福壽全歸", "男女喪通用", "27"],
+      ["哀輓", "五福全歸", "男女喪通用", "27"],
+      ["哀輓", "痛失知音", "哀輓朋友", "28"],
+      ["哀輓", "伊人宛在", "哀輓朋友", "28"],
+      ["哀輓", "人琴俱亡", "哀輓朋友", "28"],
+      ["哀輓", "響絕牙琴", "哀輓朋友", "28"],
+      ["哀輓", "教澤長存", "哀輓師長", "29"],
+      ["哀輓", "桃李興悲", "哀輓師長", "29"],
+      ["哀輓", "國失賢良", "哀輓政界", "30"],
+      ["哀輓", "忠勤足式", "哀輓政界", "30"],
+      ["哀輓", "木壞山頹", "哀輓學界", "31"],
+      ["哀輓", "天喪斯文", "哀輓學界", "31"]
+    ];
+
+    /**************************************************************
+     * 2. Web Audio API 合成音效引擎（零外部依賴、即時回饋）
+     **************************************************************/
+    class SoundEngine {
+      constructor() {
+        this.ctx = null;
+        this.muted = false;
+      }
+
+      init() {
+        if (!this.ctx) {
+          const AudioCtx = window.AudioContext || window.webkitAudioContext;
+          if (AudioCtx) this.ctx = new AudioCtx();
+        }
+        if (this.ctx && this.ctx.state === 'suspended') {
+          this.ctx.resume();
+        }
+      }
+
+      toggleMute() {
+        this.muted = !this.muted;
+        return this.muted;
+      }
+
+      playTone(freq, type = 'sine', duration = 0.12, startTimeOffset = 0, gainVal = 0.18) {
+        if (this.muted) return;
+        this.init();
+        if (!this.ctx) return;
+
+        const now = this.ctx.currentTime + startTimeOffset;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = type;
+        osc.frequency.setValueAtTime(freq, now);
+
+        gain.gain.setValueAtTime(gainVal, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + duration);
+
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+
+        osc.start(now);
+        osc.stop(now + duration);
+      }
+
+      // 點擊按鈕音效
+      click() {
+        this.playTone(580, 'triangle', 0.07, 0, 0.15);
+      }
+
+      // 雙人鎖定選項音效
+      lockIn() {
+        this.playTone(720, 'sine', 0.08, 0, 0.15);
+      }
+
+      // 3秒倒數滴答音效
+      tick(urgent = false) {
+        this.playTone(urgent ? 980 : 660, 'sine', 0.06, 0, urgent ? 0.14 : 0.08);
+      }
+
+      // 答對音效（根據連對次數提升音高）
+      correct(streak = 1) {
+        const boost = Math.min(streak - 1, 8) * 35;
+        this.playTone(523.25 + boost, 'triangle', 0.12, 0, 0.22);
+        this.playTone(659.25 + boost, 'triangle', 0.12, 0.09, 0.22);
+        this.playTone(783.99 + boost, 'triangle', 0.26, 0.18, 0.25);
+      }
+
+      // 答錯或逾時音效
+      wrong() {
+        this.playTone(220, 'sawtooth', 0.16, 0, 0.18);
+        this.playTone(165, 'sawtooth', 0.28, 0.14, 0.20);
+      }
+
+      // 遊戲結束與勝隊祝賀慶典號角
+      fanfare() {
+        const notes = [523.25, 659.25, 783.99, 1046.5];
+        notes.forEach((n, idx) => {
+          this.playTone(n, 'triangle', 0.22, idx * 0.12, 0.24);
+        });
+        this.playTone(1318.5, 'sine', 0.5, 0.48, 0.25);
+      }
+    }
+
+    const sfx = new SoundEngine();
+
+    /**************************************************************
+     * 3. 遊戲狀態管理
+     **************************************************************/
+    const state = {
+      mode: '1p',              // '1p' | '2p'
+      duration: 60,            // 60 | 180 | 300 (秒)
+      category: 'identity',    // 'identity' | 'inscription'
+      subCategory: '不分類',   // 1P 題辭子分類
+
+      isPlaying: false,
+      remainingTime: 60,
+      globalTimerId: null,
+
+      questionPool: [],        // 當前篩選後的題庫
+      fullCategoryPool: [],    // 該大類完整題庫（供挑選不同分組錯誤選項）
+      deck: [],                // 洗牌後的題目佇列
+      currentQ: null,          // { subCat, prompt, answer, group, options: [str, str], correctIdx: 0|1 }
+
+      // 單題 3 秒倒數計時
+      qDuration: 3000,         // 3000ms
+      qStartTime: 0,
+      qRafId: null,
+      lastTickSec: 4,
+      isQuestionResolved: false,
+
+      // 1P 狀態
+      p1: {
+        score: 0,
+        winStreak: 0,
+        loseStreak: 0,
+        maxWinStreak: 0,
+        correctCount: 0,
+        totalCount: 0
+      },
+
+      // 2P 狀態
+      p2: {
+        red: {
+          score: 0,
+          winStreak: 0,
+          loseStreak: 0,
+          maxWinStreak: 0,
+          correctCount: 0,
+          choiceIdx: null,
+          timeMs: null
+        },
+        white: {
+          score: 0,
+          winStreak: 0,
+          loseStreak: 0,
+          maxWinStreak: 0,
+          correctCount: 0,
+          choiceIdx: null,
+          timeMs: null
+        }
+      }
+    };
+
+    /**************************************************************
+     * 4. DOM 元素綁定与首頁設定互動
+     **************************************************************/
+    const elScreenHome = document.getElementById('screen-home');
+    const elScreen1P = document.getElementById('screen-1p');
+    const elScreen2P = document.getElementById('screen-2p');
+    const elHeaderTimerBox = document.getElementById('header-timer-box');
+    const elGlobalTimerText = document.getElementById('global-timer-text');
+    const elBtnHome = document.getElementById('btn-home');
+    const elModalResult = document.getElementById('modal-result');
+
+    // 更新首頁選項視覺狀態
+    function updateHomeSelectionsUI() {
+      // 模式按鈕
+      document.querySelectorAll('.mode-btn').forEach(btn => {
+        const active = btn.dataset.mode === state.mode;
+        btn.className = `mode-btn btn-3d p-3 sm:p-4 rounded-2xl border-3 flex flex-col sm:flex-row items-center justify-center gap-2 text-center sm:text-left ${
+          active
+            ? 'bg-amber-50 border-amber-600 text-amber-950 shadow-[0_4px_0_#B45309]'
+            : 'bg-stone-100 border-stone-300 text-stone-600 shadow-[0_4px_0_#A8A29E]'
+        }`;
+      });
+
+      // 時間按鈕
+      document.querySelectorAll('.time-btn').forEach(btn => {
+        const active = Number(btn.dataset.time) === state.duration;
+        btn.className = `time-btn btn-3d py-2.5 sm:py-3 px-3 rounded-xl border-2 font-black text-sm sm:text-base md:text-lg ${
+          active
+            ? 'bg-red-600 border-red-800 text-white shadow-[0_4px_0_#7F1D1D]'
+            : 'bg-stone-100 border-stone-300 text-stone-700 shadow-[0_4px_0_#A8A29E]'
+        }`;
+      });
+
+      // 題庫大類按鈕
+      document.querySelectorAll('.cat-btn').forEach(btn => {
+        const active = btn.dataset.cat === state.category;
+        btn.className = `cat-btn btn-3d p-3 sm:p-3.5 rounded-2xl border-2 flex items-center justify-center gap-2 ${
+          active
+            ? 'bg-emerald-700 border-emerald-900 text-white shadow-[0_4px_0_#064E3B]'
+            : 'bg-stone-100 border-stone-300 text-stone-700 shadow-[0_4px_0_#A8A29E]'
+        }`;
+      });
+
+      // 控制「題辭」小題分組顯示（僅限 1P 且選擇「題辭」）
+      const subContainer = document.getElementById('subcat-container');
+      const rule2PHint = document.getElementById('rule-2p-hint');
+      if (state.mode === '1p' && state.category === 'inscription') {
+        subContainer.classList.remove('hidden');
+      } else {
+        subContainer.classList.add('hidden');
+      }
+
+      if (state.mode === '2p') {
+        rule2PHint.classList.remove('hidden');
+      } else {
+        rule2PHint.classList.add('hidden');
+      }
+
+      // 小題分組按鈕
+      document.querySelectorAll('.subcat-btn').forEach(btn => {
+        const active = btn.dataset.sub === state.subCategory;
+        btn.className = `subcat-btn btn-3d py-2 px-2.5 rounded-xl border-2 font-bold text-xs sm:text-sm ${
+          active
+            ? 'bg-amber-600 border-amber-800 text-white shadow-[0_3px_0_#78350F]'
+            : 'bg-white border-amber-300 text-stone-700 shadow-[0_3px_0_#D97706]'
+        }`;
+      });
+
+      // 計算該小題分組題數
+      if (state.category === 'inscription') {
+        const count = state.subCategory === '不分類'
+          ? INSCRIPTION_QUESTIONS.length
+          : INSCRIPTION_QUESTIONS.filter(q => q[0] === state.subCategory).length;
+        document.getElementById('subcat-count-badge').textContent = `共 ${count} 題`;
+      }
+    }
+
+    // 綁定首頁設定按鈕事件
+    document.querySelectorAll('.mode-btn').forEach(btn => {
+      btn.addEventListener('pointerdown', () => {
+        sfx.click();
+        state.mode = btn.dataset.mode;
+        updateHomeSelectionsUI();
+      });
+    });
+
+    document.querySelectorAll('.time-btn').forEach(btn => {
+      btn.addEventListener('pointerdown', () => {
+        sfx.click();
+        state.duration = Number(btn.dataset.time);
+        updateHomeSelectionsUI();
+      });
+    });
+
+    document.querySelectorAll('.cat-btn').forEach(btn => {
+      btn.addEventListener('pointerdown', () => {
+        sfx.click();
+        state.category = btn.dataset.cat;
+        updateHomeSelectionsUI();
+      });
+    });
+
+    document.querySelectorAll('.subcat-btn').forEach(btn => {
+      btn.addEventListener('pointerdown', () => {
+        sfx.click();
+        state.subCategory = btn.dataset.sub;
+        updateHomeSelectionsUI();
+      });
+    });
+
+    // 音效開關
+    document.getElementById('btn-sound').addEventListener('pointerdown', () => {
+      const isMuted = sfx.toggleMute();
+      document.getElementById('sound-icon').textContent = isMuted ? '🔇' : '🔊';
+      document.getElementById('sound-label').textContent = isMuted ? '已靜音' : '音效開啟';
+      if (!isMuted) sfx.click();
+    });
+
+    /**************************************************************
+     * 5. 題庫建構與隨機二選一生成邏輯
+     **************************************************************/
+    function buildQuestionPool() {
+      if (state.category === 'identity') {
+        const formatted = IDENTITY_QUESTIONS.map(item => ({
+          subCat: '人物身份詞語',
+          prompt: item[0],
+          answer: item[1],
+          group: item[2]
+        }));
+        state.fullCategoryPool = formatted;
+        state.questionPool = formatted;
+      } else {
+        const formatted = INSCRIPTION_QUESTIONS.map(item => ({
+          subCat: item[0],
+          prompt: item[1],
+          answer: item[2],
+          group: item[3]
+        }));
+        state.fullCategoryPool = formatted;
+
+        if (state.mode === '1p' && state.subCategory !== '不分類') {
+          state.questionPool = formatted.filter(q => q.subCat === state.subCategory);
+        } else {
+          state.questionPool = formatted;
+        }
+      }
+      refillDeck();
+    }
+
+    function refillDeck() {
+      state.deck = [...state.questionPool];
+      // Fisher-Yates 洗牌
+      for (let i = state.deck.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [state.deck[i], state.deck[j]] = [state.deck[j], state.deck[i]];
+      }
+    }
+
+    // 格式化題目中的「」引號，讓重點字詞更醒目
+    function formatPromptHTML(text) {
+      return text.replace(/「([^」]+)」/g, '<span class="text-[#C93B2B] underline decoration-amber-500 decoration-4 underline-offset-8 mx-0.5">「$1」</span>');
+    }
+
+    // 抽取下一題並挑選不同「答案分組」的錯誤選項
+    function generateNextQuestion() {
+      if (state.deck.length === 0) {
+        refillDeck();
+      }
+      const q = state.deck.pop();
+
+      // 優先從當前選擇的題庫挑選不同「答案分組」且答案文字不同的錯誤選項
+      let candidatePool = state.questionPool.filter(
+        item => item.group !== q.group && item.answer !== q.answer
+      );
+      // 若子題庫無足夠不同分組，則從同大類完整題庫挑選
+      if (candidatePool.length === 0) {
+        candidatePool = state.fullCategoryPool.filter(
+          item => item.group !== q.group && item.answer !== q.answer
+        );
+      }
+
+      // 取得不重複的錯誤答案文字清單
+      const uniqueWrongAnswers = [...new Set(candidatePool.map(item => item.answer))];
+      const wrongAnswer = uniqueWrongAnswers[Math.floor(Math.random() * uniqueWrongAnswers.length)];
+
+      // 隨機決定正確答案在左(0)或右(1)
+      const correctIdx = Math.random() < 0.5 ? 0 : 1;
+      const options = correctIdx === 0 ? [q.answer, wrongAnswer] : [wrongAnswer, q.answer];
+
+      state.currentQ = {
+        subCat: q.subCat,
+        prompt: q.prompt,
+        answer: q.answer,
+        group: q.group,
+        options,
+        correctIdx
+      };
+    }
+
+    /**************************************************************
+     * 6. 遊戲開始、總計時器與畫面切換
+     **************************************************************/
+    function formatMMSS(sec) {
+      const m = Math.floor(sec / 60).toString().padStart(2, '0');
+      const s = (sec % 60).toString().padStart(2, '0');
+      return `${m}:${s}`;
+    }
+
+    function startGame() {
+      sfx.click();
+      stopConfetti();
+      buildQuestionPool();
+
+      state.isPlaying = true;
+      state.remainingTime = state.duration;
+      elGlobalTimerText.textContent = formatMMSS(state.remainingTime);
+      elGlobalTimerText.classList.remove('text-red-400', 'animate-urgent');
+
+      // 重設統計數據
+      state.p1 = { score: 0, winStreak: 0, loseStreak: 0, maxWinStreak: 0, correctCount: 0, totalCount: 0 };
+      state.p2.red = { score: 0, winStreak: 0, loseStreak: 0, maxWinStreak: 0, correctCount: 0, choiceIdx: null, timeMs: null };
+      state.p2.white = { score: 0, winStreak: 0, loseStreak: 0, maxWinStreak: 0, correctCount: 0, choiceIdx: null, timeMs: null };
+
+      // 切換畫面
+      elScreenHome.classList.add('hidden');
+      elModalResult.classList.add('hidden');
+      elBtnHome.classList.remove('hidden');
+      elHeaderTimerBox.classList.remove('hidden');
+      elHeaderTimerBox.classList.add('flex');
+
+      if (state.mode === '1p') {
+        elScreen1P.classList.remove('hidden');
+        elScreen1P.classList.add('flex');
+        elScreen2P.classList.add('hidden');
+        elScreen2P.classList.remove('flex');
+
+        const catTitle = state.category === 'identity'
+          ? '人物身份詞語'
+          : `題辭（${state.subCategory}）`;
+        document.getElementById('p1-category-label').textContent = catTitle;
+        document.getElementById('p1-score').textContent = '0';
+        document.getElementById('p1-streak-badge').textContent = '準備出題';
+        document.getElementById('p1-streak-badge').className = 'font-black text-xs sm:text-sm md:text-base text-amber-700';
+      } else {
+        elScreen2P.classList.remove('hidden');
+        elScreen2P.classList.add('flex');
+        elScreen1P.classList.add('hidden');
+        elScreen1P.classList.remove('flex');
+
+        document.getElementById('red-score').textContent = '0';
+        document.getElementById('white-score').textContent = '0';
+        document.getElementById('red-streak-text').textContent = '準備作答';
+        document.getElementById('white-streak-text').textContent = '準備作答';
+      }
+
+      // 啟動遊戲總時間倒數
+      if (state.globalTimerId) clearInterval(state.globalTimerId);
+      state.globalTimerId = setInterval(() => {
+        if (!state.isPlaying) return;
+        state.remainingTime--;
+        elGlobalTimerText.textContent = formatMMSS(Math.max(0, state.remainingTime));
+
+        if (state.remainingTime <= 10) {
+          elGlobalTimerText.classList.add('text-red-400', 'animate-urgent');
+        }
+        if (state.remainingTime <= 0) {
+          endGame();
+        }
+      }, 1000);
+
+      // 出第一題
+      presentNextQuestion();
+    }
+
+    function returnToHome() {
+      sfx.click();
+      stopAllTimers();
+      stopConfetti();
+      state.isPlaying = false;
+
+      elScreen1P.classList.add('hidden');
+      elScreen1P.classList.remove('flex');
+      elScreen2P.classList.add('hidden');
+      elScreen2P.classList.remove('flex');
+      elModalResult.classList.add('hidden');
+      elBtnHome.classList.add('hidden');
+      elHeaderTimerBox.classList.add('hidden');
+      elHeaderTimerBox.classList.remove('flex');
+
+      elScreenHome.classList.remove('hidden');
+      updateHomeSelectionsUI();
+    }
+
+    function stopAllTimers() {
+      if (state.globalTimerId) {
+        clearInterval(state.globalTimerId);
+        state.globalTimerId = null;
+      }
+      if (state.qRafId) {
+        cancelAnimationFrame(state.qRafId);
+        state.qRafId = null;
+      }
+    }
+
+    /**************************************************************
+     * 7. 出題與 3 秒單題倒數動畫
+     **************************************************************/
+    function presentNextQuestion() {
+      if (!state.isPlaying) return;
+      generateNextQuestion();
+      state.isQuestionResolved = false;
+      state.lastTickSec = 4;
+
+      if (state.mode === '1p') {
+        render1PQuestion();
+      } else {
+        render2PQuestion();
+      }
+
+      // 啟動 3 秒高精度倒數
+      state.qStartTime = performance.now();
+      if (state.qRafId) cancelAnimationFrame(state.qRafId);
+      state.qRafId = requestAnimationFrame(updateQuestionCountdown);
+    }
+
+    function updateQuestionCountdown(now) {
+      if (!state.isPlaying || state.isQuestionResolved) return;
+      const elapsed = now - state.qStartTime;
+      const remainMs = Math.max(0, state.qDuration - elapsed);
+      const ratio = (remainMs / state.qDuration) * 100;
+      const secText = (remainMs / 1000).toFixed(1) + 's';
+
+      // 每秒滴答音效
+      const ceilSec = Math.ceil(remainMs / 1000);
+      if (ceilSec < state.lastTickSec && ceilSec > 0) {
+        state.lastTickSec = ceilSec;
+        sfx.tick(ceilSec === 1);
+      }
+
+      if (state.mode === '1p') {
+        document.getElementById('p1-q-timer-bar').style.width = `${ratio}%`;
+        document.getElementById('p1-q-timer-num').textContent = secText;
+      } else {
+        document.getElementById('p2-q-timer-bar').style.width = `${ratio}%`;
+        document.getElementById('p2-q-timer-num').textContent = secText;
+      }
+
+      if (remainMs <= 0) {
+        // 3 秒時間到！
+        if (state.mode === '1p') {
+          resolve1PQuestion(null); // null 代表未作答逾時
+        } else {
+          resolve2PQuestion();     // 公布兩隊答案
+        }
+      } else {
+        state.qRafId = requestAnimationFrame(updateQuestionCountdown);
+      }
+    }
+
+    /**************************************************************
+     * 8. 【一人遊戲】渲染與作答計分邏輯
+     **************************************************************/
+    function render1PQuestion() {
+      const q = state.currentQ;
+      document.getElementById('p1-q-subtag').textContent = q.subCat;
+      document.getElementById('p1-q-prompt').innerHTML = formatPromptHTML(q.prompt);
+      document.getElementById('p1-q-timer-bar').style.width = '100%';
+      document.getElementById('p1-q-timer-num').textContent = '3.0s';
+
+      // 隱藏回饋區
+      const fbBox = document.getElementById('p1-feedback-box');
+      fbBox.classList.add('hidden');
+      fbBox.classList.remove('flex');
+
+      // 重設兩個選項按鈕
+      [0, 1].forEach(idx => {
+        const btn = document.getElementById(`p1-opt-${idx}`);
+        btn.disabled = false;
+        btn.querySelector('.opt-text').textContent = q.options[idx];
+        btn.className = 'p1-opt-btn btn-3d h-full rounded-3xl bg-white hover:bg-amber-50 border-4 border-[#8C6239] shadow-[0_7px_0_#5E3F22] flex flex-col items-center justify-center p-3 text-center relative overflow-hidden';
+      });
+    }
+
+    function resolve1PQuestion(selectedIdx) {
+      if (state.isQuestionResolved) return;
+      state.isQuestionResolved = true;
+      if (state.qRafId) cancelAnimationFrame(state.qRafId);
+
+      const q = state.currentQ;
+      const isTimeout = selectedIdx === null;
+      const isCorrect = !isTimeout && selectedIdx === q.correctIdx;
+
+      state.p1.totalCount++;
+
+      // 鎖定按鈕並標示顏色
+      [0, 1].forEach(idx => {
+        const btn = document.getElementById(`p1-opt-${idx}`);
+        btn.disabled = true;
+        if (idx === q.correctIdx) {
+          btn.className = 'p1-opt-btn h-full rounded-3xl bg-emerald-100 border-4 border-emerald-600 shadow-inner flex flex-col items-center justify-center p-3 text-center relative overflow-hidden';
+        } else if (idx === selectedIdx && !isCorrect) {
+          btn.className = 'p1-opt-btn h-full rounded-3xl bg-red-100 border-4 border-red-600 opacity-90 flex flex-col items-center justify-center p-3 text-center relative overflow-hidden animate-shake';
+        } else {
+          btn.className = 'p1-opt-btn h-full rounded-3xl bg-stone-100 border-4 border-stone-300 opacity-50 flex flex-col items-center justify-center p-3 text-center relative overflow-hidden';
+        }
+      });
+
+      const fbBox = document.getElementById('p1-feedback-box');
+      const fbIcon = document.getElementById('p1-fb-icon');
+      const fbTitle = document.getElementById('p1-fb-title');
+      const fbDesc = document.getElementById('p1-fb-desc');
+      const streakBadge = document.getElementById('p1-streak-badge');
+
+      let deltaScore = 0;
+
+      if (isCorrect) {
+        // 連續答對：第1題+1, 第2題+2, 第3題+3...
+        state.p1.winStreak++;
+        state.p1.loseStreak = 0;
+        if (state.p1.winStreak > state.p1.maxWinStreak) {
+          state.p1.maxWinStreak = state.p1.winStreak;
+        }
+        state.p1.correctCount++;
+        deltaScore = state.p1.winStreak;
+        state.p1.score += deltaScore;
+
+        sfx.correct(state.p1.winStreak);
+
+        fbBox.className = 'rounded-2xl p-3 sm:p-4 border-2 bg-emerald-50 border-emerald-500 text-emerald-950 flex flex-col sm:flex-row items-center justify-between gap-3 shrink-0 animate-pop';
+        fbIcon.textContent = '🎉';
+        fbTitle.textContent = state.p1.winStreak > 1
+          ? `回答正確！（連續答對 ${state.p1.winStreak} 題 🔥）`
+          : '回答正確！';
+        fbDesc.textContent = `本題得分：+${deltaScore} 分 ｜ 目前累積得分：${state.p1.score} 分`;
+
+        streakBadge.textContent = `🔥 連對 ${state.p1.winStreak} 題 (+${deltaScore})`;
+        streakBadge.className = 'font-black text-xs sm:text-sm md:text-base text-emerald-700';
+      } else {
+        // 答錯或未在3秒內作答：第1題-1, 第2題連續-2, 第3題連續-3...
+        state.p1.loseStreak++;
+        state.p1.winStreak = 0;
+        deltaScore = -state.p1.loseStreak;
+        state.p1.score += deltaScore;
+
+        sfx.wrong();
+
+        fbBox.className = 'rounded-2xl p-3 sm:p-4 border-2 bg-red-50 border-red-500 text-red-950 flex flex-col sm:flex-row items-center justify-between gap-3 shrink-0 animate-shake';
+        fbIcon.textContent = isTimeout ? '⏰' : '❌';
+        const reasonText = isTimeout ? '逾時未作答！' : '回答錯誤！';
+        const streakWarn = state.p1.loseStreak > 1 ? `（連續失誤 ${state.p1.loseStreak} 題）` : '';
+        fbTitle.innerHTML = `${reasonText}${streakWarn} <span class="underline decoration-2 ml-1">正確答案：${q.prompt} ➔ ${q.answer}</span>`;
+        fbDesc.textContent = `本題扣分：${deltaScore} 分 ｜ 目前累積得分：${state.p1.score} 分`;
+
+        streakBadge.textContent = `⚠️ 連錯 ${state.p1.loseStreak} 題 (${deltaScore})`;
+        streakBadge.className = 'font-black text-xs sm:text-sm md:text-base text-red-600';
+      }
+
+      document.getElementById('p1-score').textContent = state.p1.score;
+    }
+
+    // 綁定 1P 選項點擊與下一題
+    document.querySelectorAll('.p1-opt-btn').forEach(btn => {
+      btn.addEventListener('pointerdown', (e) => {
+        e.preventDefault();
+        if (!state.isPlaying || state.isQuestionResolved) return;
+        const idx = Number(btn.dataset.idx);
+        resolve1PQuestion(idx);
+      });
+    });
+
+    document.getElementById('btn-p1-next').addEventListener('pointerdown', (e) => {
+      e.preventDefault();
+      if (!state.isPlaying) return;
+      sfx.click();
+      presentNextQuestion();
+    });
+
+    /**************************************************************
+     * 9. 【兩人對戰模式】渲染、雙人同步鎖定與開獎計分邏輯
+     **************************************************************/
+    function render2PQuestion() {
+      const q = state.currentQ;
+      const catLabel = state.category === 'identity' ? '人物身份詞語' : `題辭・${q.subCat}`;
+      document.getElementById('p2-q-subtag').textContent = catLabel;
+      document.getElementById('p2-q-prompt').innerHTML = formatPromptHTML(q.prompt);
+      document.getElementById('p2-q-timer-bar').style.width = '100%';
+      document.getElementById('p2-q-timer-num').textContent = '3.0s';
+
+      // 隱藏下一題按鈕
+      document.getElementById('p2-next-wrap').classList.add('hidden');
+
+      // 重置紅白兩隊本題作答紀錄
+      state.p2.red.choiceIdx = null;
+      state.p2.red.timeMs = null;
+      state.p2.white.choiceIdx = null;
+      state.p2.white.timeMs = null;
+
+      // 重置紅白兩隊狀態訊息與按鈕
+      const redWait = document.getElementById('red-waiting-msg');
+      redWait.classList.remove('hidden');
+      redWait.textContent = '👆 請於 3 秒內點選答案';
+      redWait.className = 'text-xs sm:text-sm font-bold text-red-800 bg-red-200/70 px-3 py-1.5 rounded-full';
+      document.getElementById('red-feedback-card').classList.add('hidden');
+
+      const whiteWait = document.getElementById('white-waiting-msg');
+      whiteWait.classList.remove('hidden');
+      whiteWait.textContent = '👆 請於 3 秒內點選答案';
+      whiteWait.className = 'text-xs sm:text-sm font-bold text-slate-700 bg-slate-200/80 px-3 py-1.5 rounded-full';
+      document.getElementById('white-feedback-card').classList.add('hidden');
+
+      // 設定紅隊與白隊一模一樣的二選一選項
+      document.querySelectorAll('.red-opt').forEach(btn => {
+        const idx = Number(btn.dataset.idx);
+        btn.disabled = false;
+        btn.querySelector('.opt-text').textContent = q.options[idx];
+        btn.className = 'p2-opt-btn red-opt btn-3d py-3.5 sm:py-5 px-2 rounded-2xl bg-white hover:bg-red-50 border-3 border-red-600 shadow-[0_5px_0_#991B1B] flex flex-col items-center justify-center';
+      });
+
+      document.querySelectorAll('.white-opt').forEach(btn => {
+        const idx = Number(btn.dataset.idx);
+        btn.disabled = false;
+        btn.querySelector('.opt-text').textContent = q.options[idx];
+        btn.className = 'p2-opt-btn white-opt btn-3d py-3.5 sm:py-5 px-2 rounded-2xl bg-white hover:bg-slate-50 border-3 border-slate-600 shadow-[0_5px_0_#334155] flex flex-col items-center justify-center';
+      });
+    }
+
+    // 處理紅隊或白隊玩家點選答案（鎖定但先不公布正誤，直到兩隊都選完或3秒時間到）
+    function handle2PTeamSelect(team, idx) {
+      if (!state.isPlaying || state.isQuestionResolved) return;
+      const teamData = state.p2[team];
+      // 作答後不可更改答案
+      if (teamData.choiceIdx !== null) return;
+
+      teamData.choiceIdx = idx;
+      teamData.timeMs = performance.now() - state.qStartTime;
+      sfx.lockIn();
+
+      // 鎖定該隊按鈕並提示等待開獎
+      const selector = team === 'red' ? '.red-opt' : '.white-opt';
+      document.querySelectorAll(selector).forEach(btn => {
+        const bIdx = Number(btn.dataset.idx);
+        btn.disabled = true;
+        if (bIdx === idx) {
+          btn.className = `p2-opt-btn ${team}-opt py-3.5 sm:py-5 px-2 rounded-2xl bg-amber-100 border-3 border-amber-600 shadow-inner flex flex-col items-center justify-center scale-[0.98]`;
+        } else {
+          btn.className = `p2-opt-btn ${team}-opt py-3.5 sm:py-5 px-2 rounded-2xl bg-stone-100 border-3 border-stone-300 opacity-45 flex flex-col items-center justify-center`;
+        }
+      });
+
+      const waitMsg = document.getElementById(`${team}-waiting-msg`);
+      waitMsg.textContent = '🔒 已鎖定答案，等待開獎...';
+      waitMsg.className = 'text-xs sm:text-sm font-black text-amber-900 bg-amber-200 px-3 py-1.5 rounded-full animate-pulse';
+
+      // 若兩隊皆已作答完成，立即同步開獎！
+      if (state.p2.red.choiceIdx !== null && state.p2.white.choiceIdx !== null) {
+        resolve2PQuestion();
+      }
+    }
+
+    // 兩隊都作答或 3 秒時間到，同步公布答案與計分
+    function resolve2PQuestion() {
+      if (state.isQuestionResolved) return;
+      state.isQuestionResolved = true;
+      if (state.qRafId) cancelAnimationFrame(state.qRafId);
+
+      const q = state.currentQ;
+      const redCorrect = state.p2.red.choiceIdx === q.correctIdx;
+      const whiteCorrect = state.p2.white.choiceIdx === q.correctIdx;
+
+      // 判定最快回答正確的小隊（額外 +3 分）
+      let fastestTeam = null;
+      if (redCorrect && whiteCorrect) {
+        fastestTeam = state.p2.red.timeMs <= state.p2.white.timeMs ? 'red' : 'white';
+      } else if (redCorrect) {
+        fastestTeam = 'red';
+      } else if (whiteCorrect) {
+        fastestTeam = 'white';
+      }
+
+      // 播放音效
+      if (redCorrect || whiteCorrect) {
+        const maxStreak = Math.max(
+          redCorrect ? state.p2.red.winStreak + 1 : 1,
+          whiteCorrect ? state.p2.white.winStreak + 1 : 1
+        );
+        sfx.correct(maxStreak);
+      } else {
+        sfx.wrong();
+      }
+
+      // 分別結算並渲染紅隊與白隊回饋
+      evaluateTeamResult('red', redCorrect, fastestTeam === 'red');
+      evaluateTeamResult('white', whiteCorrect, fastestTeam === 'white');
+
+      // 顯示中央「下一題」按鈕
+      document.getElementById('p2-next-wrap').classList.remove('hidden');
+    }
+
+    function evaluateTeamResult(team, isCorrect, isFastest) {
+      const q = state.currentQ;
+      const tData = state.p2[team];
+      const isTimeout = tData.choiceIdx === null;
+
+      // 隱藏等待提示，顯示回饋卡片
+      document.getElementById(`${team}-waiting-msg`).classList.add('hidden');
+      const fbCard = document.getElementById(`${team}-feedback-card`);
+      const fbBadge = document.getElementById(`${team}-fb-badge`);
+      const fbDetail = document.getElementById(`${team}-fb-detail`);
+      const fbExplain = document.getElementById(`${team}-fb-explain`);
+      const streakText = document.getElementById(`${team}-streak-text`);
+
+      fbCard.classList.remove('hidden');
+
+      // 更新按鈕正解/誤答視覺
+      const selector = team === 'red' ? '.red-opt' : '.white-opt';
+      document.querySelectorAll(selector).forEach(btn => {
+        const bIdx = Number(btn.dataset.idx);
+        btn.disabled = true;
+        if (bIdx === q.correctIdx) {
+          btn.className = `p2-opt-btn ${team}-opt py-3.5 sm:py-5 px-2 rounded-2xl bg-emerald-100 border-3 border-emerald-600 shadow-inner flex flex-col items-center justify-center`;
+        } else if (bIdx === tData.choiceIdx && !isCorrect) {
+          btn.className = `p2-opt-btn ${team}-opt py-3.5 sm:py-5 px-2 rounded-2xl bg-red-100 border-3 border-red-600 opacity-90 flex flex-col items-center justify-center animate-shake`;
+        } else {
+          btn.className = `p2-opt-btn ${team}-opt py-3.5 sm:py-5 px-2 rounded-2xl bg-stone-100 border-3 border-stone-300 opacity-45 flex flex-col items-center justify-center`;
+        }
+      });
+
+      if (isCorrect) {
+        tData.winStreak++;
+        tData.loseStreak = 0;
+        if (tData.winStreak > tData.maxWinStreak) tData.maxWinStreak = tData.winStreak;
+        tData.correctCount++;
+
+        const basePoints = tData.winStreak;
+        const speedBonus = isFastest ? 3 : 0;
+        const totalEarned = basePoints + speedBonus;
+        tData.score += totalEarned;
+
+        fbCard.className = 'w-full rounded-2xl p-2 sm:p-3 border-2 bg-emerald-50 border-emerald-500 text-emerald-950 text-center animate-pop';
+        fbBadge.innerHTML = isFastest
+          ? `⭕ 回答正確！ <span class="inline-block bg-amber-400 text-amber-950 text-xs px-2 py-0.5 rounded-full font-black ml-1">⚡最快答對 +3</span>`
+          : `⭕ 回答正確！`;
+        fbDetail.textContent = isFastest
+          ? `連對 +${basePoints} 分、最快 +3 分 ➔ 本題 +${totalEarned} 分（累積 ${tData.score} 分）`
+          : `本題得分：+${totalEarned} 分（累積 ${tData.score} 分）`;
+        fbExplain.textContent = `🔥 目前連續答對 ${tData.winStreak} 題`;
+        streakText.textContent = `🔥 連對 ${tData.winStreak} 題`;
+      } else {
+        tData.loseStreak++;
+        tData.winStreak = 0;
+        const penalty = -tData.loseStreak;
+        tData.score += penalty;
+
+        fbCard.className = 'w-full rounded-2xl p-2 sm:p-3 border-2 bg-red-50 border-red-500 text-red-950 text-center animate-shake';
+        fbBadge.textContent = isTimeout ? '⏰ 3秒內未作答！' : '❌ 回答錯誤！';
+        fbDetail.textContent = `本題扣分：${penalty} 分（累積 ${tData.score} 分）`;
+        fbExplain.innerHTML = `正確選項說明：<b>${q.prompt} ➔ ${q.answer}</b>`;
+        streakText.textContent = `⚠️ 連錯 ${tData.loseStreak} 題`;
+      }
+
+      document.getElementById(`${team}-score`).textContent = tData.score;
+    }
+
+    // 綁定 2P 雙人同時多點觸控選項事件
+    document.querySelectorAll('.p2-opt-btn').forEach(btn => {
+      btn.addEventListener('pointerdown', (e) => {
+        e.preventDefault();
+        const team = btn.dataset.team;
+        const idx = Number(btn.dataset.idx);
+        handle2PTeamSelect(team, idx);
+      });
+    });
+
+    document.getElementById('btn-p2-next').addEventListener('pointerdown', (e) => {
+      e.preventDefault();
+      if (!state.isPlaying) return;
+      sfx.click();
+      presentNextQuestion();
+    });
+
+    /**************************************************************
+     * 10. 時間到結算與勝隊祝賀彩帶動畫
+     **************************************************************/
+    function endGame() {
+      state.isPlaying = false;
+      stopAllTimers();
+      sfx.fanfare();
+      startConfetti();
+
+      elModalResult.classList.remove('hidden');
+
+      const res1PBoard = document.getElementById('res-1p-board');
+      const res2PBoard = document.getElementById('res-2p-board');
+      const resTitle = document.getElementById('res-title');
+      const resSubtitle = document.getElementById('res-subtitle');
+      const resTrophy = document.getElementById('res-trophy');
+
+      if (state.mode === '1p') {
+        res1PBoard.classList.remove('hidden');
+        res2PBoard.classList.add('hidden');
+
+        resTrophy.textContent = '🏆';
+        resSubtitle.textContent = '時間到！單人挑戰結算';
+        resTitle.textContent = `最終得分：${state.p1.score} 分`;
+
+        document.getElementById('res-1p-score').textContent = state.p1.score;
+        document.getElementById('res-1p-acc').textContent = `${state.p1.correctCount} / ${state.p1.totalCount}`;
+        document.getElementById('res-1p-streak').textContent = `${state.p1.maxWinStreak} 題`;
+      } else {
+        res1PBoard.classList.add('hidden');
+        res2PBoard.classList.remove('hidden');
+
+        const redScore = state.p2.red.score;
+        const whiteScore = state.p2.white.score;
+
+        const redCrown = document.getElementById('res-red-crown');
+        const whiteCrown = document.getElementById('res-white-crown');
+        redCrown.classList.add('hidden');
+        whiteCrown.classList.add('hidden');
+
+        resSubtitle.textContent = '時間到！紅白對戰勝負揭曉';
+
+        if (redScore > whiteScore) {
+          resTrophy.textContent = '🔴🏆';
+          resTitle.textContent = '🎉 恭喜【紅隊】榮獲勝利！';
+          resTitle.className = 'font-serif-tc font-black text-3xl sm:text-5xl text-red-600';
+          redCrown.classList.remove('hidden');
+        } else if (whiteScore > redScore) {
+          resTrophy.textContent = '⚪🏆';
+          resTitle.textContent = '🎉 恭喜【白隊】榮獲勝利！';
+          resTitle.className = 'font-serif-tc font-black text-3xl sm:text-5xl text-slate-700';
+          whiteCrown.classList.remove('hidden');
+        } else {
+          resTrophy.textContent = '🤝✨';
+          resTitle.textContent = '旗鼓相當！雙方平手！';
+          resTitle.className = 'font-serif-tc font-black text-3xl sm:text-5xl text-amber-600';
+          redCrown.classList.remove('hidden');
+          whiteCrown.classList.remove('hidden');
+        }
+
+        document.getElementById('res-red-score').textContent = redScore;
+        document.getElementById('res-red-stats').textContent = `答對 ${state.p2.red.correctCount} 題｜最高連對 ${state.p2.red.maxWinStreak}`;
+
+        document.getElementById('res-white-score').textContent = whiteScore;
+        document.getElementById('res-white-stats').textContent = `答對 ${state.p2.white.correctCount} 題｜最高連對 ${state.p2.white.maxWinStreak}`;
+      }
+    }
+
+    // 結算視窗與頂部導覽按鈕綁定
+    document.getElementById('btn-start-game').addEventListener('pointerdown', startGame);
+    document.getElementById('btn-play-again').addEventListener('pointerdown', startGame);
+    document.getElementById('btn-back-menu').addEventListener('pointerdown', returnToHome);
+    document.getElementById('btn-home').addEventListener('pointerdown', returnToHome);
+
+    /**************************************************************
+     * 11. 慶祝彩帶粒子特效 (Canvas Confetti)
+     **************************************************************/
+    const confettiCanvas = document.getElementById('confetti-canvas');
+    const cCtx = confettiCanvas.getContext('2d');
+    let confettiParticles = [];
+    let confettiRaf = null;
+
+    function resizeConfettiCanvas() {
+      confettiCanvas.width = window.innerWidth;
+      confettiCanvas.height = window.innerHeight;
+    }
+    window.addEventListener('resize', resizeConfettiCanvas);
+    resizeConfettiCanvas();
+
+    function startConfetti() {
+      resizeConfettiCanvas();
+      const colors = ['#C93B2B', '#D99B26', '#1E825E', '#3B82F6', '#F59E0B', '#EC4899'];
+      confettiParticles = Array.from({ length: 90 }, () => ({
+        x: Math.random() * confettiCanvas.width,
+        y: Math.random() * -confettiCanvas.height,
+        w: 8 + Math.random() * 8,
+        h: 6 + Math.random() * 6,
+        color: colors[Math.floor(Math.random() * colors.length)],
+        vy: 2.5 + Math.random() * 3.5,
+        vx: (Math.random() - 0.5) * 2.5,
+        angle: Math.random() * 360,
+        vAngle: (Math.random() - 0.5) * 8
+      }));
+
+      if (confettiRaf) cancelAnimationFrame(confettiRaf);
+      renderConfetti();
+    }
+
+    function renderConfetti() {
+      cCtx.clearRect(0, 0, confettiCanvas.width, confettiCanvas.height);
+      confettiParticles.forEach(p => {
+        p.x += p.vx;
+        p.y += p.vy;
+        p.angle += p.vAngle;
+        if (p.y > confettiCanvas.height) {
+          p.y = -15;
+          p.x = Math.random() * confettiCanvas.width;
+        }
+        cCtx.save();
+        cCtx.translate(p.x, p.y);
+        cCtx.rotate((p.angle * Math.PI) / 180);
+        cCtx.fillStyle = p.color;
+        cCtx.fillRect(-p.w / 2, -p.h / 2, p.w, p.h);
+        cCtx.restore();
+      });
+      confettiRaf = requestAnimationFrame(renderConfetti);
+    }
+
+    function stopConfetti() {
+      if (confettiRaf) {
+        cancelAnimationFrame(confettiRaf);
+        confettiRaf = null;
+      }
+      cCtx.clearRect(0, 0, confettiCanvas.width, confettiCanvas.height);
+    }
+
+    // 初始化首頁介面
+    window.onload = function () {
+      updateHomeSelectionsUI();
+    };
+  </script>
+</body>
+</html>
